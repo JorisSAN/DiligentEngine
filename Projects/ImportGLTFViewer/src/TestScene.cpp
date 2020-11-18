@@ -68,12 +68,9 @@ void TestScene::Initialize(const SampleInitInfo& InitInfo)
     actors.emplace_back(new Helmet(Init, m_BackgroundMode));
     actors.emplace_back(new Sphere(Init, m_BackgroundMode));
 
-    int i = 0;
-
     for (auto actor : actors)
     {
-        actor->setPosition(float3(0.0f, 0.0f, i * 1.0f));
-        i++;
+        actor->setPosition(float3(0.0f, 0.0f, 0.0f));
     }
 }
 
