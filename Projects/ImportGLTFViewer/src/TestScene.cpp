@@ -35,6 +35,7 @@
 #include "TextureUtilities.h"
 #include "Sphere.h"
 #include "Helmet.h"
+#include "AnimPeople.h"
 #include "InputController.hpp"
 
 namespace Diligent
@@ -66,7 +67,7 @@ void TestScene::Initialize(const SampleInitInfo& InitInfo)
     m_Camera.SetSpeedUpScales(5.f, 10.f);
 
     actors.emplace_back(new Helmet(Init, m_BackgroundMode));
-    actors.emplace_back(new Sphere(Init, m_BackgroundMode));
+    actors.emplace_back(new AnimPeople(Init, m_BackgroundMode));
 
     for (auto actor : actors)
     {
