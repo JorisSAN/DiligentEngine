@@ -155,10 +155,14 @@ void Camera::SetLookAt(const float3& LookAt)
     m_fPitchAngle = -atan2f(ViewDir.y, fXZLen);
 }
 
-void Camera::SetRotation(float Yaw, float Pitch)
+void Camera::SetRotation(float Yaw, float Pitch, float Roll)
 {
     m_fYawAngle   = Yaw;
     m_fPitchAngle = Pitch;
+    m_fRollAngle  = Roll;
+    rotation      = Quaternion::RotationFromAxisAngle(float3(1, 0, 0), m_fPitchAngle) *
+        Quaternion::RotationFromAxisAngle(float3(0, 1, 0), m_fYawAngle) *
+        Quaternion::RotationFromAxisAngle(float3(0, 0, 1), m_fRollAngle);
 }
 
 void Camera::SetProjAttribs(Float32           NearClipPlane,

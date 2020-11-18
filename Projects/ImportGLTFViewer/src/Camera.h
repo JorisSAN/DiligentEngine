@@ -38,7 +38,7 @@ class Camera
 {
 public:
     void Update(InputController& Controller, float ElapsedTime);
-    void SetRotation(float Yaw, float Pitch);
+    void SetRotation(float Yaw, float Pitch, float Roll);
     void SetLookAt(const float3& LookAt);
     void SetMoveSpeed(float MoveSpeed) { m_fMoveSpeed = MoveSpeed; }
     void SetRotationSpeed(float RotationSpeed) { m_fRotationSpeed = RotationSpeed; }
@@ -105,7 +105,7 @@ public:
 
     float m_fYawAngle          = 0; // Yaw angle of camera
     float m_fPitchAngle        = 0; // Pitch angle of camera
-    float m_fRollAngle         = +PI_F; // roll angle of camera
+    float m_fRollAngle         = 0; // roll angle of camera
     float m_fSpeedUpScale      = 1.f;
     float m_fSuperSpeedUpScale = 1.f;
     float m_fHandness          = 1.f; // -1 - left handed

@@ -60,8 +60,8 @@ void TestScene::Initialize(const SampleInitInfo& InitInfo)
 
     Init = InitInfo;
 
-    m_Camera.SetPos(float3(0.0f, 0.0f, 0.0f));
-    m_Camera.SetRotation(PI_F / 2.f, 0);
+    m_Camera.SetPos(float3(-5.0f, 0.0f, 0.0f));
+    m_Camera.SetRotation(PI_F / 2.f, 0, +PI_F);
     m_Camera.SetRotationSpeed(0.005f);
     m_Camera.SetMoveSpeed(5.f);
     m_Camera.SetSpeedUpScales(5.f, 10.f);

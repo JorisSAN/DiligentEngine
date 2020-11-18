@@ -52,7 +52,7 @@ public:
 private:
     RefCntAutoPtr<IBuffer> m_CameraAttribsCB;
 
-    BackgroundMode m_BackgroundMode = BackgroundMode::Irradiance;
+    BackgroundMode m_BackgroundMode = BackgroundMode::EnvironmentMap;
 
     Camera m_Camera;
 
