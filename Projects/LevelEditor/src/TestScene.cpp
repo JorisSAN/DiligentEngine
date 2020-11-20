@@ -55,12 +55,132 @@ bool ListBox(const char* label, int* currIndex, std::vector<std::string>& values
 {
     if (values.empty()) { return false; }
     return ListBox(label, currIndex, vector_getter,
-                   static_cast<void*>(&values),(int) values.size());
+                   static_cast<void*>(&values), (int)values.size());
 }
 
 } // namespace ImGui
+
+
 namespace Diligent
 {
+struct LineSegement
+{
+    float3 start;
+    float3 end;
+};
+
+bool TestLineIntersection(Actor* actor, LineSegement lineseg) {
+    
+    //AABB
+    return false;
+}
+bool TestScene::Unproject(float windowsX, float windowsY, float windowsZ, const float4x4& modelView, float4x4& projection, float3& worldCoordinate)
+{
+
+    float4x4 m = (projection * modelView).Inverse();
+    float4   in;
+    float winHeight = (float)m_pSwapChain->GetDesc().Height;
+    float    winWidth = (float)m_pSwapChain->GetDesc().Width;
+
+    in[0] = windowsX / winWidth * 2.0f - 1.0f;
+    in[1] = windowsY / winHeight * 2.0f - 1.0f;
+    in[2] = 2.0f * windowsZ - 1.0f;
+    in[3] = 1.0f;
+
+    //to world coordinate
+    float4 out(m * in);
+    if (out[3] == 0.0)
+    {
+        worldCoordinate.x = 0;
+        worldCoordinate.y = 0;
+        worldCoordinate.z = 0;
+        return false;
+    }
+    worldCoordinate.x = out[0] * out[3];
+    worldCoordinate.y = out[1] * out[3];
+    worldCoordinate.z = out[2] * out[3];
+
+    return true;
+}
+
+std::vector<Actor*> TestScene::Pick(float x, float y)
+{
+    LineSegement        lineSeg;
+    std::vector<Actor*> intersectedObjs;
+    Unproject(x, y, 0.0f, m_CubeWorldMatrix, m_CameraViewProjMatrix, lineSeg.start);
+    Unproject(x, y, 1.0f, m_CubeWorldMatrix, m_CameraViewProjMatrix, lineSeg.end);
+
+    for (auto actor : actors) {
+        if (TestLineIntersection(actor, lineSeg))
+        {
+            intersectedObjs.push_back(actor);
+        }
+    }
+
+    //sort them from distance
+    return intersectedObjs;
+}
+float3 ToEulerAngles(Quaternion quat)
+{
+    float4 q = quat.q;
+    float3 angles;
+
+    // roll (x-axis rotation)
+    float sinr_cosp  = 2 * (q.w * q.x + q.y * q.z);
+    float sinr_cosp2 = 2 * (q.x * q.y + q.z * q.w);
+    float cosr_cosp  = 1 - 2 * (q.x * q.x + q.y * q.y);
+    float cosr_cosp2 = 1 - 2 * (q.y * q.y + q.z * q.z);
+    if (sinr_cosp == cosr_cosp && sinr_cosp == 0)
+    {
+        angles.x = 0;
+    }
+    else
+    {
+        angles.x = std::atan2f(sinr_cosp, cosr_cosp);
+    }
+    double testX = std::atan2((double)sinr_cosp2, (double)cosr_cosp2);
+    testX++;
+    // pitch (y-axis rotation)
+    float sinp = 2 * (q.w * q.y - q.z * q.x);
+    if (std::abs(sinp) >= 1)
+        angles.y = (float)std::copysign(PI / 2, sinp); // use 90 degrees if out of range
+    else
+        angles.y = std::asin(sinp);
+
+    // yaw (z-axis rotation)
+    float siny_cosp = 2 * (q.w * q.z + q.x * q.y);
+    float cosy_cosp = 1 - 2 * (q.y * q.y + q.z * q.z);
+    if (siny_cosp == cosy_cosp && siny_cosp == 0)
+    {
+        angles.z = 0;
+    }
+    else
+    {
+        angles.z = std::atan2(siny_cosp, cosy_cosp);
+    }
+    angles *= 180.0f / (float)PI;
+    return angles;
+}
+
+Quaternion ToQuaternion(float3 vec3) // yaw (Z), pitch (Y), roll (X)
+{
+    vec3 *= (float)PI / 180.f;
+    // Abbreviations for the various angular functions
+    float cy = (float)cos(vec3.z * 0.5);
+    float sy = (float)sin(vec3.z * 0.5);
+    float cp = (float)cos(vec3.y * 0.5);
+    float sp = (float)sin(vec3.y * 0.5);
+    float cr = (float)cos(vec3.x * 0.5);
+    float sr = (float)sin(vec3.x * 0.5);
+
+    Quaternion q;
+    q.q.w = cr * cp * cy + sr * sp * sy;
+    q.q.x = sr * cp * cy - cr * sp * sy;
+    q.q.y = cr * sp * cy + sr * cp * sy;
+    q.q.z = cr * cp * sy - sr * sp * cy;
+
+    return q;
+}
 
 SampleBase* CreateSample()
 {
@@ -76,32 +196,29 @@ void TestScene::GetEngineInitializationAttribs(RENDER_DEVICE_TYPE DeviceType, En
 
 void TestScene::Initialize(const SampleInitInfo& InitInfo)
 {
+
     varInitInfo = InitInfo;
     SampleBase::Initialize(varInitInfo);
-    ReadFile("TestLevel.txt",varInitInfo);
-   // actors.emplace_back(new Cube(InitInfo));
-   // actors.emplace_back(new Cube(InitInfo));
-   // actors.emplace_back(new Plane(InitInfo));
+    ReadFile("TestLevel.txt", varInitInfo);
     int i = 0;
     for (auto actor : actors)
     {
-        if (transforms.size() >= i)
-        {
-            actor->setTransform(float3(transforms.at(i).x, transforms.at(i).y, transforms.at(i).z));
+        log.addInfo(string("log"+i));
 
-       //     actor->setTransform(float3(2.0f * i, 0.0f, 0.0f));
-        
+        if (actorsPos.size() >= i)
+        {
+            actor->setPosition(actorsPos.at(i));
+            actor->setRotation(actorsRot.at(i));
+            actor->setScale(actorsSca.at(i));
         }
         else
         {
-            actor->setTransform(float3(0.0f, 0.0f, 0.0f));
-
+            actor->setPosition(float3(0.0f, 0.0f, 0.0f));
         }
         i++;
     }
 
     CreateShadowMapVisPSO();
-
 }
 
 void TestScene::ReadFile(std::string fileName, const SampleInitInfo& InitInfo)
@@ -110,7 +227,7 @@ void TestScene::ReadFile(std::string fileName, const SampleInitInfo& InitInfo)
 
     if (!file)
     {
-        return ;
+        return;
     }
     std::string line;
 
@@ -118,7 +235,7 @@ void TestScene::ReadFile(std::string fileName, const SampleInitInfo& InitInfo)
     {
         std::istringstream ss(line);
 
-        std::stringstream        test(line);
+        std::stringstream test(line);
         std::string       actorClass;
         std::getline(test, actorClass, '/');
         std::string xCoord;
@@ -126,13 +243,24 @@ void TestScene::ReadFile(std::string fileName, const SampleInitInfo& InitInfo)
         std::string zCoord;
         std::getline(test, xCoord, ',');
         std::getline(test, yCoord, ',');
-        std::getline(test, zCoord, ',');
-
-        float x = std::stof(xCoord.c_str());
-        float y = std::stof(yCoord.c_str());
-        float z = std::stof(zCoord.c_str());
+        std::getline(test, zCoord, '/');
+        std::string xQuat;
+        std::string yQuat;
+        std::string zQuat;
+        std::string wQuat;
+        std::string scale;
+        std::getline(test, xQuat, ',');
+        std::getline(test, yQuat, ',');
+        std::getline(test, zQuat, ',');
+        std::getline(test, wQuat, '/');
+        std::getline(test, scale, ',');
+        //float3 coord = float3(std::stof(xCoord.c_str()), std::stof(yCoord.c_str()), std::stof(zCoord.c_str()));
+        float3     coord = float3(std::stof(xCoord), std::stof(yCoord), std::stof(zCoord));
+        Quaternion quat  = Quaternion(std::stof(xQuat), std::stof(yQuat), std::stof(zQuat), std::stof(wQuat));
         CreateAdaptedActor(actorClass, InitInfo);
-        transforms.emplace_back(float3(x,y,z));
+        actorsPos.emplace_back(coord);
+        actorsRot.emplace_back(quat);
+        actorsSca.emplace_back(std::stof(scale));
     }
 
     int isfserfs = 0;
@@ -140,12 +268,13 @@ void TestScene::ReadFile(std::string fileName, const SampleInitInfo& InitInfo)
 
     file.close();
     //    transforms.push_back(float3(2, 0, 0));
-//    transforms.push_back(float3(4, 0, 0));
+    //    transforms.push_back(float3(4, 0, 0));
 }
 
 void TestScene::CreateAdaptedActor(std::string actorClass, const SampleInitInfo& InitInfo)
 {
-    if (actorClass == "Cube") {
+    if (actorClass == "Cube")
+    {
         actors.emplace_back(new Cube(InitInfo));
     }
     if (actorClass == "Plane")
@@ -153,7 +282,7 @@ void TestScene::CreateAdaptedActor(std::string actorClass, const SampleInitInfo&
         actors.emplace_back(new Plane(InitInfo));
     }
 }
-    // Render a frame
+// Render a frame
 void TestScene::Render()
 {
     // Bind main back buffer
@@ -257,31 +386,52 @@ void TestScene::UpdateUI()
     {
         //index a selectionner avec listbox
         std::vector<std::string> indexesName;
-        int size        = (int)actors.size();
-        for (int indextemp = 0; indextemp < size; indextemp++) {
+        int                      size = (int)actors.size();
+        for (int indextemp = 0; indextemp < size; indextemp++)
+        {
             indexesName.emplace_back(std::to_string(indextemp));
         }
 
         ImGui::ListBox("index actor", &indexActors, indexesName);
 
-    //    ImGui::InputInt("Index acteur", &indexActors);
-    //    ImGui::DragInt("drag int", &indexActors, 1);
+        //    ImGui::InputInt("Index acteur", &indexActors);
+        //    ImGui::DragInt("drag int", &indexActors, 1);
 
 
         //Transform of index selected transform
-        if (indexActors > -1) {
 
-        
-            float3 coord = actors.at(indexActors)->getCoord();
-             float vec4i[4] = {coord.x, coord.y, coord.z, 1};
+        if (indexActors > -1)
+        {
+
+
+            float3 coord    = actors.at(indexActors)->getPosition();
+            float  vec4i[4] = {coord.x, coord.y, coord.z, 1};
             if (ImGui::InputFloat3("coord", vec4i))
             {
                 coord = float3(vec4i[0], vec4i[1], vec4i[2]);
-                actors.at(indexActors)->setTransform(coord);
+                actors.at(indexActors)->setPosition(coord);
+            }
+
+            float3 euler       = ToEulerAngles(actors.at(indexActors)->getRotation());
+            float  dosvec4i[4] = {euler.x, euler.y, euler.z, 1};
+
+
+            if (ImGui::InputFloat3("Rotation", dosvec4i))
+            {
+
+                euler           = float3(dosvec4i[0], dosvec4i[1], dosvec4i[2]);
+                Quaternion test = ToQuaternion(euler);
+                actors.at(indexActors)->setRotation(test);
+            }
+
+            float scal = actors.at(indexActors)->getScale();
+            if (ImGui::InputFloat("Scale", &scal))
+            {
+                actors.at(indexActors)->setScale(scal);
             }
         }
-        
-        
+
+
         /*
         int size =(int) actors.size();
         if (ImGui::ListBoxHeader("List",size ))
@@ -296,19 +446,19 @@ void TestScene::UpdateUI()
         */
 
         //Same line String to write + button to create actor
-        
+
         ImGui::InputText("Name of class", nameSelected, IM_ARRAYSIZE(nameSelected));
         ImGui::SameLine();
-        if (ImGui::Button("Create")) {
+        if (ImGui::Button("Create"))
+        {
             std::stringstream ss;
             ss << nameSelected;
             std::string s = ss.str();
 
-            CreateAdaptedActor(s,varInitInfo);
-
+            CreateAdaptedActor(s, varInitInfo);
         }
 
-         ImGui::NewLine();
+        ImGui::NewLine();
         ImGui::InputText("Level file name", levelName, IM_ARRAYSIZE(levelName));
         ImGui::SameLine();
         if (ImGui::Button("SaveLevel"))
@@ -319,7 +469,6 @@ void TestScene::UpdateUI()
 
             SaveLevel(levelName);
         }
-
     }
     ImGui::End();
 }
@@ -327,13 +476,19 @@ void TestScene::SaveLevel(std::string fileName)
 {
     std::ofstream file(fileName.c_str());
     std::string   line;
-    
+
     for (auto actor : actors)
     {
         line = actor->getClassName();
         line += "/";
-        float3 tempCoord = actor->getCoord();
-        line += std::to_string(tempCoord.x) + "," +std::to_string(tempCoord.y) + "," +std::to_string(tempCoord.z);
+        float3 tempCoord = actor->getPosition();
+        line += std::to_string(tempCoord.x) + "," + std::to_string(tempCoord.y) + "," + std::to_string(tempCoord.z);
+        line += "/";
+        Quaternion tempQuat = actor->getRotation();
+        line += std::to_string(tempQuat.q.x) + "," + std::to_string(tempQuat.q.y) + "," + std::to_string(tempQuat.q.z) + "," + std::to_string(tempQuat.q.w);
+        line += "/";
+        float tempScale = actor->getScale();
+        line += std::to_string(tempScale);
         line += "\n";
         file << line;
     }
@@ -346,6 +501,7 @@ void TestScene::Update(double CurrTime, double ElapsedTime)
 {
     SampleBase::Update(CurrTime, ElapsedTime);
     UpdateUI();
+    log.Draw();
     // Animate the cube
     for (auto actor : actors)
     {

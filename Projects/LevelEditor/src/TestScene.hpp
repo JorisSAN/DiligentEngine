@@ -30,7 +30,9 @@
 
 #include "SampleBase.hpp"
 #include "BasicMath.hpp"
+//#include "Camera.h"
 #include "Actor.h"
+#include "Log.h"
 
 namespace Diligent
 {
@@ -41,28 +43,41 @@ public:
     virtual void GetEngineInitializationAttribs(RENDER_DEVICE_TYPE DeviceType, EngineCreateInfo& EngineCI, SwapChainDesc& SCDesc) override final;
 
     virtual void Initialize(const SampleInitInfo& InitInfo) override final;
-    void         ReadFile(std::string fileName, const SampleInitInfo& InitInfo);
     virtual void Render() override final;
     virtual void Update(double CurrTime, double ElapsedTime) override final;
+    void         CreateShadowMapVisPSO();
+    virtual const Char* GetSampleName() const override final { return "TestScene"; }
+
+
+    ////// Level editor function
+    void ReadFile(std::string fileName, const SampleInitInfo& InitInfo);
     void         CreateAdaptedActor(std::string actorClass, const SampleInitInfo& InitInfo);
     void         SaveLevel(std::string fileName);
-    virtual const Char* GetSampleName() const override final { return "TestScene"; }
     void                UpdateUI();
-    void                CreateShadowMapVisPSO();
-
+    bool                Unproject(float windowsX, float windowsY, float windowsZ, const float4x4& modelView, float4x4& projection, float3& worldCoordinate);
+    std::vector<Actor*> Pick(float x, float y);
+    
     RefCntAutoPtr<IShaderResourceBinding> m_ShadowMapVisSRB;
     RefCntAutoPtr<IPipelineState>         m_pShadowMapVisPSO;
-    std::vector<float3> transforms;
     float4x4       m_CubeWorldMatrix;
     float4x4       m_CameraViewProjMatrix;
     float4x4       m_WorldToShadowMapUVDepthMatr;
     float3         m_LightDirection  = normalize(float3(-0.49f, -0.60f, 0.64f));
     Uint32         m_ShadowMapSize   = 512;
     TEXTURE_FORMAT m_ShadowMapFormat = TEX_FORMAT_D16_UNORM;
+
+    // LEvel Editor var
     int                 indexActors       = -1;
     std::vector<Actor*> actors;
     char               nameSelected[32];
     char               levelName[32];
+    std::vector<float3> actorsPos;
+    std::vector<Quaternion> actorsRot;
+    std::vector<float> actorsSca;
+    MouseState              m_LastMouseState;
+//    Camera                  m_Camera;
+    Log log;
+
 };
 
 } // namespace Diligent

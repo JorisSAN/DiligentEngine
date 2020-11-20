@@ -7,6 +7,7 @@ set(SOURCE
     src/Actor.cpp
     src/Component.cpp
     src/Cube.cpp
+    src/Log.cpp
     src/Plane.cpp
     src/TexturedCube.cpp
 )
@@ -16,6 +17,7 @@ set(INCLUDE
     src/Actor.h
     src/Component.h
     src/Cube.h
+    src/Log.h
     src/Plane.h
     src/TexturedCube.hpp
 )

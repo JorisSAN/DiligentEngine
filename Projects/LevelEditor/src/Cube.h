@@ -15,7 +15,6 @@ public:
 
     void UpdateActor(double CurrTime, double ElapsedTime) override;
     char* getClassName() override{return "Cube";} 
-    void setTransform(float3 transform) override;
 
 private:
     void CreatePSO() override;
