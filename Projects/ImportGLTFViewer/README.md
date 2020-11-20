@@ -5,4 +5,5 @@
 
 # Result
 
+Result with the camera in front of the actors
 ![](DemoGLTF.gif)
