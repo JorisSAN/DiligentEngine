@@ -40,7 +40,6 @@
 
 namespace Diligent
 {
-    
 
 SampleBase* CreateSample()
 {
