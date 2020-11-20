@@ -11,7 +11,7 @@ To use it in your scene:
 
 
 To add info to the logs use  ```log.addInfo(my_message); ```
-The variable my_message is a of type string
+The variable my_message is of type string
 
 You can Save in the file  ```log.txt ```  with 
  ``` log.save(); ```
