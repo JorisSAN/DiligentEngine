@@ -6,7 +6,7 @@ namespace Diligent
 Sphere::Sphere(const SampleInitInfo& InitInfo, BackgroundMode backGroundP)
 {
     GLTFObject::Initialize(InitInfo);
-    setObjectPath("models/MetalRoughSpheres/MetalRoughSpheres.gltf");
+    setObjectPath("models/Plane/Plane.gltf");
     m_BackgroundMode = backGroundP;
 }
 

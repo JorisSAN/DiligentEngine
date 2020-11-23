@@ -1,4 +1,3 @@
-
 void main(in  uint   VertexId : SV_VertexID,
           out float4 Pos      : SV_Position,
           out float4 ClipPos  : CLIP_POS)

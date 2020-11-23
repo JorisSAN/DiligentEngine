@@ -45,7 +45,12 @@
         },
         {
             "mesh" : 0,
-            "name" : "Plan"
+            "name" : "Plan",
+            "scale" : [
+                5,
+                1,
+                5
+            ]
         }
     ],
     "meshes" : [

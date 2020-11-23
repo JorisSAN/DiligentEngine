@@ -32,6 +32,8 @@ set(SHADERS
     assets/shaders/BoundBox.psh
     assets/shaders/env_map.vsh
     assets/shaders/env_map.psh
+    assets/shaders/MeshVS.vsh
+    assets/shaders/MeshPS.psh
 )
 
 set(EXTERNAL_SHADERS
@@ -39,6 +41,7 @@ set(EXTERNAL_SHADERS
     ../../DiligentFX/Shaders/PostProcess/ToneMapping/public/ToneMapping.fxh
     ../../DiligentFX/Shaders/Common/public/BasicStructures.fxh
     ../../DiligentFX/Shaders/Common/public/ShaderUtilities.fxh
+    ../../DiligentFX/Shaders/Common/public/Shadows.fxh
 )
 
 set(ALL_SHADERS ${SHADERS} ${EXTERNAL_SHADERS})
@@ -164,7 +167,7 @@ target_include_directories(ImportGLTFViewer PRIVATE
 
 foreach(FILE ${EXTERNAL_SHADERS})
     # Copy external shaders
-    add_custom_command(TARGET ImportGLTFViewer PRE_BUILD 
+    add_custom_command(TARGET TestShadow PRE_BUILD 
         COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/${FILE}" "${CMAKE_CURRENT_SOURCE_DIR}/assets/shaders"
     )
 endforeach(FILE)

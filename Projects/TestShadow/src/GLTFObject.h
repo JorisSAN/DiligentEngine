@@ -2,11 +2,13 @@
 #include "Actor.h"
 #include "GLTFLoader.hpp"
 #include "GLTF_PBR_Renderer.hpp"
+#include "ShadowMapManager.hpp"
 #include "Camera.h"
 #include "EnvMap.h"
 
 namespace Diligent
 {
+#include "Shaders/Common/public/BasicStructures.fxh"
 
 class GLTFObject : public Actor
 {
@@ -18,7 +20,7 @@ public:
 
     void setObjectPath(const char* path);
 
-    void RenderActor(const Camera& camera, bool IsShadowPass) override;
+    void RenderActor(const Camera& cameraP, bool IsShadowPass) override;
 
     void UpdateActor(double CurrTime, double ElapsedTime) override;
 
@@ -29,18 +31,41 @@ protected:
 
 
 private:
-    void DrawMesh(IDeviceContext* pCtx, bool bIsShadowPass, const ViewFrustumExt& Frustum);
     void CreatePSO() override;
     void CreateVertexBuffer() override;
     void LoadModel(const char* Path);
+    void CreateShadowMap();
+    void InitializeResourceBindings();
+    void RenderShadowMap();
 
     GLTF_PBR_Renderer::RenderInfo m_RenderParams;
 
-    float3 m_LightDirection;
+    struct ShadowSettings
+    {
+        bool           SnapCascades         = true;
+        bool           StabilizeExtents     = true;
+        bool           EqualizeExtents      = true;
+        bool           SearchBestCascade    = true;
+        bool           FilterAcrossCascades = true;
+        int            Resolution           = 2048;
+        float          PartitioningFactor   = 0.95f;
+        TEXTURE_FORMAT Format               = TEX_FORMAT_D16_UNORM;
+        int            iShadowMode          = SHADOW_MODE_PCF;
+
+        bool Is32BitFilterableFmt = true;
+    } m_ShadowSettings;
+
+    RefCntAutoPtr<ISampler> m_pComparisonSampler;
+    RefCntAutoPtr<ISampler> m_pFilterableShadowMapSampler;
+    ShadowMapManager m_ShadowMapMgr;
+    RefCntAutoPtr<IShaderResourceBinding>      m_ShadowSRB;
+    RefCntAutoPtr<IPipelineState> m_RenderShadowPSO;
+
+    Camera camera;
+
+    LightAttribs m_LightAttribs;
     float4 m_LightColor     = float4(1, 1, 1, 1);
-    float  m_LightIntensity = 3.f;
     float  m_EnvMapMipLevel = 1.f;
-    int    m_SelectedModel  = 3;
 
     static const std::pair<const char*, const char*> GLTFModels[];
 
