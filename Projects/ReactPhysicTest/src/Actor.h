@@ -30,6 +30,7 @@
 #include "SampleBase.hpp"
 #include "BasicMath.hpp"
 #include <vector>
+#include "Log.h"
 
 
 namespace Diligent
@@ -68,6 +69,21 @@ public:
 
     RefCntAutoPtr<IShaderResourceBinding> getm_SRB() { return m_SRB; }
     RefCntAutoPtr<IPipelineState>         getm_pPSO() { return m_pPSO; }
+
+    Log log;
+
+    //Return a pointer to the componenent if it exist
+    //Return nullptr if not
+    template <typename Type>
+    Type* GetComponent(Type*);
+
+    /*
+    //template <typename Type>
+    Component* GetComponent(Component*);
+    */
+
+    Actor* GetActor();
+
 
 protected:
     RefCntAutoPtr<IPipelineState>         m_pPSO;

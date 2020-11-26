@@ -279,4 +279,35 @@ void Actor::updateComponents(double CurrTime, double ElapsedTime)
     }
 }
 
+//Return a pointer to the componenent if it exist
+//Return nullptr if not
+template <typename Type>
+Type * Actor::GetComponent(Type* componentSearched)
+{
+    for (auto component : components)
+    {
+        if (componentSearched = dynamic_cast<Type*>(component))
+            return componentSearched;
+    }
+    return nullptr;
+}
+
+/*
+Component* Actor::GetComponent(Component* componentSearched)
+{
+    for (auto component : components)
+    {
+        if (componentSearched = dynamic_cast<Component*>(component))
+            return componentSearched;
+    }
+    return nullptr;
+}
+*/
+
+
+Actor* Actor::GetActor() 
+{
+    return this;
+}
+
 } // namespace Diligent

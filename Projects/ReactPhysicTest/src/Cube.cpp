@@ -1,10 +1,12 @@
 #include "Cube.h"
+#include "RigidbodyComponent.h"
 #include "TexturedCube.hpp"
 
 #include "MapHelper.hpp"
 #include "GraphicsUtilities.h"
 #include "TextureUtilities.h"
 #include "TexturedCube.hpp"
+#include "Log.h"
 
 using namespace Diligent;
 
@@ -260,6 +262,20 @@ void Cube::RenderActor(const float4x4& CameraViewProj, bool IsShadowPass)
 
 void Cube::UpdateActor(double CurrTime, double ElapsedTime)
 {
+    
     // Animate the cube
-    //setRotation(Quaternion::RotationFromAxisAngle(float3(0, 1, 0), static_cast<float>(CurrTime) * 1.0f));
+    RigidbodyComponent* rbBase = new RigidbodyComponent(this->GetActor());
+    //this->GetComponent(&Component(this->GetActor()));
+    RigidbodyComponent*     rb      = this->GetComponent(rbBase);
+    //reactphysics3d::Vector3 rbPosV3 = rb->GetRigidBody()->getTransform().getPosition();
+    //float3                  rbPosF3 = float3(rbPosV3.x, rbPosV3.y, rbPosV3.z);
+    //setPosition(rbPosF3);
+
+    /*
+    //Log info
+    string message = "x = " + std::to_string(rbPosV3.x) + " ,y = " + std::to_string(rbPosV3.y) + " ,z = " + std::to_string(rbPosV3.z);
+    log.addInfo(message);
+    //log update
+    log.Draw();
+    */
 }
