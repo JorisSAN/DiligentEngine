@@ -30,6 +30,7 @@
 #include "SampleBase.hpp"
 #include "BasicMath.hpp"
 #include "Camera.h"
+#include "EnvMap.h"
 #include <vector>
 
 

@@ -55,7 +55,10 @@ public:
     virtual void Render() override final;
     virtual void Update(double CurrTime, double ElapsedTime) override final;
 
+    SampleInitInfo getInitInfo() { return Init; }
+
     void removeActor(Actor* actor);
+    void addActor(Actor* actor);
 
     virtual const Char* GetSampleName() const override final { return "Scene"; }
 

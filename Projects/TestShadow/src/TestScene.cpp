@@ -37,6 +37,7 @@
 #include "Helmet.h"
 #include "AnimPeople.h"
 #include "InputController.hpp"
+#include "Actor.h"
 
 namespace Diligent
 {
@@ -104,17 +105,35 @@ void TestScene::Update(double CurrTime, double ElapsedTime)
 {
     SampleBase::Update(CurrTime, ElapsedTime);
 
-
     m_Camera.Update(m_InputController, static_cast<float>(ElapsedTime));
-
-    if (m_InputController.IsKeyDown(InputKeys::MoveBackward))
-        actors[0]->setState(Actor::ActorState::Dead);
 
     // Animate Actors
     for (auto actor : actors)
     {
-        actor->Update(CurrTime, ElapsedTime);
+            actor->Update(CurrTime, ElapsedTime);
     }
+
+    if (m_InputController.IsKeyDown(InputKeys::MoveBackward))
+        actors.back()->setState(Actor::ActorState::Dead);
+
+    // Delete dead actors
+    std::vector<Actor*> deadActors;
+    for (auto actor : actors)
+    {
+        if (actor->getState() == Actor::ActorState::Dead)
+        {
+            deadActors.emplace_back(actor);
+        }
+    }
+    for (auto deadActor : deadActors)
+    {
+    }
+}
+
+void TestScene::addActor(Actor* actor)
+{
+    actors.emplace_back(actor);
+    actor->Initialize(Init);
 }
 
 void TestScene::removeActor(Actor* actor)
@@ -122,7 +141,8 @@ void TestScene::removeActor(Actor* actor)
     auto iter = std::find(begin(actors), end(actors), actor);
     if (iter != end(actors))
     {
-        actors.erase(iter);
+        std::iter_swap(iter, end(actors) - 1);
+        actors.pop_back();
     }
 }
 

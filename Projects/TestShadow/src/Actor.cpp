@@ -42,7 +42,6 @@ namespace Diligent
 Actor::Actor() :
     scene(TestScene::instance())
 {
-
 }
 
 Actor::Actor(const SampleInitInfo& InitInfo) :
@@ -68,9 +67,9 @@ void Actor::Initialize(const SampleInitInfo& InitInfo)
 
 void Actor::Update(double CurrTime, double ElapsedTime)
 {
+    SampleBase::Update(CurrTime, ElapsedTime);
     if (state == ActorState::Active)
     {
-        SampleBase::Update(CurrTime, ElapsedTime);
         updateComponents(CurrTime, ElapsedTime);
         UpdateActor(CurrTime, ElapsedTime);
         computeWorldTransform();
