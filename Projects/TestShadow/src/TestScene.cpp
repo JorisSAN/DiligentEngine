@@ -93,7 +93,10 @@ void TestScene::Render()
 
     for (auto actor : actors)
     {
-        actor->RenderActor(m_Camera, false);
+        if (actor->getState() == Actor::ActorState::Active)
+        {
+            actor->RenderActor(m_Camera, false);
+        }
     }
 }
 
@@ -104,10 +107,22 @@ void TestScene::Update(double CurrTime, double ElapsedTime)
 
     m_Camera.Update(m_InputController, static_cast<float>(ElapsedTime));
 
+    if (m_InputController.IsKeyDown(InputKeys::MoveBackward))
+        actors[0]->setState(Actor::ActorState::Dead);
+
     // Animate Actors
     for (auto actor : actors)
     {
         actor->Update(CurrTime, ElapsedTime);
+    }
+}
+
+void TestScene::removeActor(Actor* actor)
+{
+    auto iter = std::find(begin(actors), end(actors), actor);
+    if (iter != end(actors))
+    {
+        actors.erase(iter);
     }
 }
 

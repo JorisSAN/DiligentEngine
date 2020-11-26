@@ -34,23 +34,31 @@
 #include "TextureUtilities.h"
 #include "Actor.h"
 #include "Component.h"
+#include "TestScene.hpp"
 
 namespace Diligent
 {
 
-Actor::Actor()
+Actor::Actor() :
+    scene(TestScene::instance())
 {
 
 }
 
-Actor::Actor(const SampleInitInfo& InitInfo)
+Actor::Actor(const SampleInitInfo& InitInfo) :
+    scene(TestScene::instance())
 {
     Initialize(InitInfo);
 }
 
 Actor::~Actor()
 {
+    scene.removeActor(this);
 
+    while (!components.empty())
+    {
+        delete components.back();
+    }
 }
 
 void Actor::Initialize(const SampleInitInfo& InitInfo)
@@ -60,11 +68,13 @@ void Actor::Initialize(const SampleInitInfo& InitInfo)
 
 void Actor::Update(double CurrTime, double ElapsedTime)
 {
-    SampleBase::Update(CurrTime, ElapsedTime);
-
-    updateComponents(CurrTime, ElapsedTime);
-    UpdateActor(CurrTime, ElapsedTime);
-    computeWorldTransform();
+    if (state == ActorState::Active)
+    {
+        SampleBase::Update(CurrTime, ElapsedTime);
+        updateComponents(CurrTime, ElapsedTime);
+        UpdateActor(CurrTime, ElapsedTime);
+        computeWorldTransform();
+    }
 }
 
 void Actor::computeWorldTransform() 

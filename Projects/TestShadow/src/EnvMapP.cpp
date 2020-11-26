@@ -30,11 +30,10 @@
 #include "EnvMapP.h"
 #include "MapHelper.hpp"
 #include "BasicMath.hpp"
-#include "GraphicsUtilities.h"
 #include "TextureUtilities.h"
+#include "GraphicsUtilities.h"
 #include "CommonlyUsedStates.h"
 #include "ShaderMacroHelper.hpp"
-#include "FileSystem.hpp"
 #include "imgui.h"
 #include "imGuIZMO.h"
 
