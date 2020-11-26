@@ -33,6 +33,7 @@
 #include "Actor.h"
 #include "Camera.h"
 #include "EnvMap.h"
+#include "EnvMapP.h"
 
 namespace Diligent
 {
@@ -59,6 +60,8 @@ private:
     MouseState m_LastMouseState;
 
     std::vector<Actor*> actors;
+
+    std::unique_ptr<EnvMap> envMaps;
 
     SampleInitInfo Init;
 };

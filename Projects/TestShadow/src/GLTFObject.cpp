@@ -40,6 +40,8 @@
 
 namespace Diligent
 {
+
+#include "Shaders/Common/public/BasicStructures.fxh"
 #include "Shaders/PostProcess/ToneMapping/public/ToneMappingStructures.fxh"
 
 namespace
@@ -103,15 +105,6 @@ void GLTFObject::Initialize(const SampleInitInfo& InitInfo)
 {
     SampleBase::Initialize(InitInfo);
 
-    m_LightAttribs.ShadowAttribs.iNumCascades     = 4;
-    m_LightAttribs.ShadowAttribs.fFixedDepthBias  = 0.0025f;
-    m_LightAttribs.ShadowAttribs.iFixedFilterSize = 5;
-    m_LightAttribs.ShadowAttribs.fFilterWorldSize = 0.1f;
-
-    m_LightAttribs.f4Direction    = float3(-0.522699475f, -0.481321275f, -0.703671455f);
-    m_LightAttribs.f4Intensity    = float4(1, 0.8f, 0.5f, 1);
-    m_LightAttribs.f4AmbientLight = float4(0.125f, 0.125f, 0.125f, 1);
-
     RefCntAutoPtr<ITexture> EnvironmentMap;
     CreateTextureFromFile("textures/papermill.ktx", TextureLoadInfo{"Environment map"}, m_pDevice, &EnvironmentMap);
     m_TextureSRV = EnvironmentMap->GetDefaultView(TEXTURE_VIEW_SHADER_RESOURCE);
@@ -143,9 +136,7 @@ void GLTFObject::Initialize(const SampleInitInfo& InitInfo)
 
     m_GLTFRenderer->PrecomputeCubemaps(m_pDevice, m_pImmediateContext, m_TextureSRV);
 
-    CreatePSO();
-
-    CreateShadowMap();
+    m_LightDirection = normalize(float3(0.5f, -0.6f, -0.2f));
 }
 
 void GLTFObject::setObjectPath(const char* pathP)
@@ -154,234 +145,13 @@ void GLTFObject::setObjectPath(const char* pathP)
     LoadModel(path);
 }
 
-void GLTFObject::CreatePSO()
-{
-    ShaderCreateInfo                               ShaderCI;
-    RefCntAutoPtr<IShaderSourceInputStreamFactory> pShaderSourceFactory;
-    m_pEngineFactory->CreateDefaultShaderSourceStreamFactory("shaders", &pShaderSourceFactory);
-    ShaderCI.pShaderSourceStreamFactory = pShaderSourceFactory;
-    ShaderCI.SourceLanguage             = SHADER_SOURCE_LANGUAGE_HLSL;
-    ShaderCI.UseCombinedTextureSamplers = true;
-
-    ShaderMacroHelper Macros;
-    // clang-format off
-    Macros.AddShaderMacro( "SHADOW_MODE",            m_ShadowSettings.iShadowMode);
-    Macros.AddShaderMacro( "SHADOW_FILTER_SIZE",     m_LightAttribs.ShadowAttribs.iFixedFilterSize);
-    Macros.AddShaderMacro( "FILTER_ACROSS_CASCADES", m_ShadowSettings.FilterAcrossCascades);
-    Macros.AddShaderMacro( "BEST_CASCADE_SEARCH",    m_ShadowSettings.SearchBestCascade );
-    // clang-format on
-    Macros.AddShaderMacro("TONE_MAPPING_MODE", "TONE_MAPPING_MODE_UNCHARTED2");
-    ShaderCI.Macros = Macros;
-
-    ShaderCI.Desc.ShaderType = SHADER_TYPE_VERTEX;
-    ShaderCI.Desc.Name       = "Environment map VS";
-    ShaderCI.EntryPoint      = "main";
-    ShaderCI.FilePath        = "env_map.vsh";
-    RefCntAutoPtr<IShader> pVS;
-    m_pDevice->CreateShader(ShaderCI, &pVS);
-
-    ShaderCI.Desc.Name       = "Environment map PS";
-    ShaderCI.EntryPoint      = "main";
-    ShaderCI.FilePath        = "env_map.psh";
-    ShaderCI.Desc.ShaderType = SHADER_TYPE_PIXEL;
-    RefCntAutoPtr<IShader> pPS;
-    m_pDevice->CreateShader(ShaderCI, &pPS);
-
-    Macros.AddShaderMacro("SHADOW_PASS", true);
-    ShaderCI.Desc.ShaderType = SHADER_TYPE_VERTEX;
-    ShaderCI.Desc.Name       = "Environment map VS";
-    ShaderCI.EntryPoint      = "main";
-    ShaderCI.FilePath        = "env_map.vsh";
-    ShaderCI.Macros          = Macros;
-    RefCntAutoPtr<IShader> pShadowVS;
-    m_pDevice->CreateShader(ShaderCI, &pShadowVS);
-
-    GraphicsPipelineStateCreateInfo PSOCreateInfo;
-    PipelineStateDesc&              PSODesc          = PSOCreateInfo.PSODesc;
-    GraphicsPipelineDesc&           GraphicsPipeline = PSOCreateInfo.GraphicsPipeline;
-
-    PSODesc.ResourceLayout.DefaultVariableType = SHADER_RESOURCE_VARIABLE_TYPE_MUTABLE;
-
-    // clang-format off
-    ImmutableSamplerDesc ImmutableSamplers[] =
-    {
-        {SHADER_TYPE_PIXEL, "EnvMap", Sam_LinearClamp},
-        {SHADER_TYPE_PIXEL, "g_tex2DDiffuse", Sam_Aniso4xWrap}
-    };
-    // clang-format on
-    PSODesc.ResourceLayout.ImmutableSamplers    = ImmutableSamplers;
-    PSODesc.ResourceLayout.NumImmutableSamplers = _countof(ImmutableSamplers);
-
-    // clang-format off
-    ShaderResourceVariableDesc Vars[] = 
-    {
-        {SHADER_TYPE_PIXEL, "cbCameraAttribs",       SHADER_RESOURCE_VARIABLE_TYPE_STATIC},
-        {SHADER_TYPE_PIXEL, "cbEnvMapRenderAttribs", SHADER_RESOURCE_VARIABLE_TYPE_STATIC},
-        {SHADER_TYPE_PIXEL, m_ShadowSettings.iShadowMode == SHADOW_MODE_PCF ? "g_tex2DShadowMap" : "g_tex2DFilterableShadowMap", SHADER_RESOURCE_VARIABLE_TYPE_MUTABLE}
-    };
-    // clang-format on
-    PSODesc.ResourceLayout.Variables    = Vars;
-    PSODesc.ResourceLayout.NumVariables = _countof(Vars);
-
-    PSODesc.Name      = "EnvMap PSO";
-    PSOCreateInfo.pVS = pVS;
-    PSOCreateInfo.pPS = pPS;
-
-    GraphicsPipeline.RTVFormats[0]              = m_pSwapChain->GetDesc().ColorBufferFormat;
-    GraphicsPipeline.NumRenderTargets           = 1;
-    GraphicsPipeline.DSVFormat                  = m_pSwapChain->GetDesc().DepthBufferFormat;
-    GraphicsPipeline.PrimitiveTopology          = PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-    GraphicsPipeline.DepthStencilDesc.DepthFunc = COMPARISON_FUNC_LESS_EQUAL;
-
-    m_pDevice->CreateGraphicsPipelineState(PSOCreateInfo, &m_pPSO);
-    m_pPSO->GetStaticVariableByName(SHADER_TYPE_PIXEL, "cbCameraAttribs")->Set(m_VertexBuffer);
-    m_pPSO->GetStaticVariableByName(SHADER_TYPE_PIXEL, "cbEnvMapRenderAttribs")->Set(m_IndexBuffer);
-    CreateVertexBuffer();
-}
-
-void GLTFObject::InitializeResourceBindings()
-{
-    {
-        RefCntAutoPtr<IShaderResourceBinding> pSRB;
-        m_pPSO->CreateShaderResourceBinding(&pSRB, true);
-        pSRB->GetVariableByName(SHADER_TYPE_PIXEL, "g_tex2DDiffuse")->Set(m_TextureSRV);
-        if (m_ShadowSettings.iShadowMode == SHADOW_MODE_PCF)
-        {
-            pSRB->GetVariableByName(SHADER_TYPE_PIXEL, "g_tex2DShadowMap")->Set(m_ShadowMapMgr.GetSRV());
-        }
-        else
-        {
-            pSRB->GetVariableByName(SHADER_TYPE_PIXEL, "g_tex2DFilterableShadowMap")->Set(m_ShadowMapMgr.GetFilterableSRV());
-        }
-        m_SRB = std::move(pSRB);
-    }
-
-    {
-        RefCntAutoPtr<IShaderResourceBinding> pShadowSRB;
-        m_RenderShadowPSO->CreateShaderResourceBinding(&pShadowSRB, true);
-        m_ShadowSRB = std::move(pShadowSRB);
-    }
-}
-
-void GLTFObject::CreateShadowMap()
-{
-    if (m_ShadowSettings.Resolution >= 2048)
-        m_LightAttribs.ShadowAttribs.fFixedDepthBias = 0.0025f;
-    else if (m_ShadowSettings.Resolution >= 1024)
-        m_LightAttribs.ShadowAttribs.fFixedDepthBias = 0.005f;
-    else
-        m_LightAttribs.ShadowAttribs.fFixedDepthBias = 0.0075f;
-
-    ShadowMapManager::InitInfo SMMgrInitInfo;
-    SMMgrInitInfo.Format               = m_ShadowSettings.Format;
-    SMMgrInitInfo.Resolution           = m_ShadowSettings.Resolution;
-    SMMgrInitInfo.NumCascades          = static_cast<Uint32>(m_LightAttribs.ShadowAttribs.iNumCascades);
-    SMMgrInitInfo.ShadowMode           = m_ShadowSettings.iShadowMode;
-    SMMgrInitInfo.Is32BitFilterableFmt = m_ShadowSettings.Is32BitFilterableFmt;
-
-    if (!m_pComparisonSampler)
-    {
-        SamplerDesc ComparsionSampler;
-        ComparsionSampler.ComparisonFunc = COMPARISON_FUNC_LESS;
-        // Note: anisotropic filtering requires SampleGrad to fix artifacts at
-        // cascade boundaries
-        ComparsionSampler.MinFilter = FILTER_TYPE_COMPARISON_LINEAR;
-        ComparsionSampler.MagFilter = FILTER_TYPE_COMPARISON_LINEAR;
-        ComparsionSampler.MipFilter = FILTER_TYPE_COMPARISON_LINEAR;
-        m_pDevice->CreateSampler(ComparsionSampler, &m_pComparisonSampler);
-    }
-    SMMgrInitInfo.pComparisonSampler = m_pComparisonSampler;
-
-    if (!m_pFilterableShadowMapSampler)
-    {
-        SamplerDesc SamplerDesc;
-        SamplerDesc.MinFilter     = FILTER_TYPE_ANISOTROPIC;
-        SamplerDesc.MagFilter     = FILTER_TYPE_ANISOTROPIC;
-        SamplerDesc.MipFilter     = FILTER_TYPE_ANISOTROPIC;
-        SamplerDesc.MaxAnisotropy = m_LightAttribs.ShadowAttribs.iMaxAnisotropy;
-        m_pDevice->CreateSampler(SamplerDesc, &m_pFilterableShadowMapSampler);
-    }
-    SMMgrInitInfo.pFilterableShadowMapSampler = m_pFilterableShadowMapSampler;
-
-    m_ShadowMapMgr.Initialize(m_pDevice, SMMgrInitInfo);
-
-    InitializeResourceBindings();
-}
-
-void GLTFObject::CreateVertexBuffer()
-{
-    if (m_BackgroundMode != BackgroundMode::None)
-    {
-        m_SRB.Release();
-        m_pPSO->CreateShaderResourceBinding(&m_SRB, true);
-        ITextureView* pEnvMapSRV = nullptr;
-        switch (m_BackgroundMode)
-        {
-            case BackgroundMode::EnvironmentMap:
-                pEnvMapSRV = m_TextureSRV;
-                break;
-
-            case BackgroundMode::Irradiance:
-                pEnvMapSRV = m_GLTFRenderer->GetIrradianceCubeSRV();
-                break;
-
-            case BackgroundMode::PrefilteredEnvMap:
-                pEnvMapSRV = m_GLTFRenderer->GetPrefilteredEnvMapSRV();
-                break;
-
-            default:
-                UNEXPECTED("Unexpected background mode");
-        }
-        m_SRB->GetVariableByName(SHADER_TYPE_PIXEL, "EnvMap")->Set(pEnvMapSRV);
-    }
-}
-
-void GLTFObject::RenderShadowMap()
-{
-    auto iNumShadowCascades = m_LightAttribs.ShadowAttribs.iNumCascades;
-    for (int iCascade = 0; iCascade < iNumShadowCascades; ++iCascade)
-    {
-        const auto CascadeProjMatr = m_ShadowMapMgr.GetCascadeTranform(iCascade).Proj;
-
-        auto WorldToLightViewSpaceMatr = m_LightAttribs.ShadowAttribs.mWorldToLightViewT.Transpose();
-        auto WorldToLightProjSpaceMatr = WorldToLightViewSpaceMatr * CascadeProjMatr;
-
-        CameraAttribs ShadowCameraAttribs = {};
-
-        ShadowCameraAttribs.mViewT     = m_LightAttribs.ShadowAttribs.mWorldToLightViewT;
-        ShadowCameraAttribs.mProjT     = CascadeProjMatr.Transpose();
-        ShadowCameraAttribs.mViewProjT = WorldToLightProjSpaceMatr.Transpose();
-
-        ShadowCameraAttribs.f4ViewportSize.x = static_cast<float>(m_ShadowSettings.Resolution);
-        ShadowCameraAttribs.f4ViewportSize.y = static_cast<float>(m_ShadowSettings.Resolution);
-        ShadowCameraAttribs.f4ViewportSize.z = 1.f / ShadowCameraAttribs.f4ViewportSize.x;
-        ShadowCameraAttribs.f4ViewportSize.w = 1.f / ShadowCameraAttribs.f4ViewportSize.y;
-
-        {
-            MapHelper<CameraAttribs> CameraData(m_pImmediateContext, m_VertexBuffer, MAP_WRITE, MAP_FLAG_DISCARD);
-            *CameraData = ShadowCameraAttribs;
-        }
-
-        auto* pCascadeDSV = m_ShadowMapMgr.GetCascadeDSV(iCascade);
-        m_pImmediateContext->SetRenderTargets(0, nullptr, pCascadeDSV, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
-        m_pImmediateContext->ClearDepthStencil(pCascadeDSV, CLEAR_DEPTH_FLAG, 1.f, 0, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
-    }
-
-    if (m_ShadowSettings.iShadowMode > SHADOW_MODE_PCF)
-        m_ShadowMapMgr.ConvertToFilterable(m_pImmediateContext, m_LightAttribs.ShadowAttribs);
-}
-
 // Render a frame
-void GLTFObject::RenderActor(const Camera& cameraP, bool IsShadowPass)
+void GLTFObject::RenderActor(const Camera& camera, bool IsShadowPass)
 {
-    camera = cameraP;
-
-    RenderShadowMap();
-
     {
         MapHelper<LightAttribs> lightAttribs(m_pImmediateContext, m_VSConstants, MAP_WRITE, MAP_FLAG_DISCARD);
-        lightAttribs->f4Direction = m_LightAttribs.f4Direction;
-        lightAttribs->f4Intensity = m_LightAttribs.f4Intensity;
+        lightAttribs->f4Direction = m_LightDirection;
+        lightAttribs->f4Intensity = m_LightColor * m_LightIntensity;
     }
 
     // Get pretransform matrix that rotates the scene according the surface orientation
@@ -405,25 +175,6 @@ void GLTFObject::RenderActor(const Camera& cameraP, bool IsShadowPass)
     }
 
     m_GLTFRenderer->Render(m_pImmediateContext, *m_Model, m_RenderParams);
-
-    if (m_BackgroundMode != BackgroundMode::None)
-    {
-        {
-            MapHelper<EnvMapRenderAttribs> EnvMapAttribs(m_pImmediateContext, m_IndexBuffer, MAP_WRITE, MAP_FLAG_DISCARD);
-            EnvMapAttribs->TMAttribs.iToneMappingMode     = TONE_MAPPING_MODE_UNCHARTED2;
-            EnvMapAttribs->TMAttribs.bAutoExposure        = 0;
-            EnvMapAttribs->TMAttribs.fMiddleGray          = m_RenderParams.MiddleGray;
-            EnvMapAttribs->TMAttribs.bLightAdaptation     = 0;
-            EnvMapAttribs->TMAttribs.fWhitePoint          = m_RenderParams.WhitePoint;
-            EnvMapAttribs->TMAttribs.fLuminanceSaturation = 1.0;
-            EnvMapAttribs->AverageLogLum                  = m_RenderParams.AverageLogLum;
-            EnvMapAttribs->MipLevel                       = m_EnvMapMipLevel;
-        }
-        m_pImmediateContext->SetPipelineState(m_pPSO);
-        m_pImmediateContext->CommitShaderResources(m_SRB, RESOURCE_STATE_TRANSITION_MODE_VERIFY);
-        DrawAttribs drawAttribs(3, DRAW_FLAG_VERIFY_ALL);
-        m_pImmediateContext->Draw(drawAttribs);
-    }
 }
 
 void GLTFObject::UpdateActor(double CurrTime, double ElapsedTime)
@@ -437,19 +188,6 @@ void GLTFObject::UpdateActor(double CurrTime, double ElapsedTime)
         AnimationTimer = std::fmod(AnimationTimer, m_Model->Animations[m_AnimationIndex].End);
         m_Model->UpdateAnimation(m_AnimationIndex, AnimationTimer);
     }
-
-    ShadowMapManager::DistributeCascadeInfo DistrInfo;
-    DistrInfo.pCameraView   = &camera.GetViewMatrix();
-    DistrInfo.pCameraProj   = &camera.GetProjMatrix();
-    float3 f3LightDirection = float3(m_LightAttribs.f4Direction.x, m_LightAttribs.f4Direction.y, m_LightAttribs.f4Direction.z);
-    DistrInfo.pLightDir     = &f3LightDirection;
-
-    DistrInfo.fPartitioningFactor = m_ShadowSettings.PartitioningFactor;
-    DistrInfo.SnapCascades        = m_ShadowSettings.SnapCascades;
-    DistrInfo.EqualizeExtents     = m_ShadowSettings.EqualizeExtents;
-    DistrInfo.StabilizeExtents    = m_ShadowSettings.StabilizeExtents;
-
-    m_ShadowMapMgr.DistributeCascades(DistrInfo, m_LightAttribs.ShadowAttribs);
 }
 
 } // namespace Diligent

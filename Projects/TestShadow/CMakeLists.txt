@@ -11,7 +11,7 @@ set(SOURCE
     src/Sphere.cpp
     src/AnimPeople.cpp
     src/GLTFObject.cpp
-    src/TexturedCube.cpp
+    src/EnvMapP.cpp
 )
 
 set(INCLUDE
@@ -24,7 +24,7 @@ set(INCLUDE
     src/AnimPeople.h
     src/GLTFObject.h
     src/EnvMap.h
-    src/TexturedCube.hpp
+    src/EnvMapP.h
 )
 
 set(SHADERS

@@ -32,7 +32,6 @@
 #include "MapHelper.hpp"
 #include "GraphicsUtilities.h"
 #include "TextureUtilities.h"
-#include "TexturedCube.hpp"
 #include "Actor.h"
 #include "Component.h"
 
@@ -47,6 +46,11 @@ Actor::Actor()
 Actor::Actor(const SampleInitInfo& InitInfo)
 {
     Initialize(InitInfo);
+}
+
+Actor::~Actor()
+{
+
 }
 
 void Actor::Initialize(const SampleInitInfo& InitInfo)

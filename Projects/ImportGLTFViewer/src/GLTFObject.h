@@ -25,11 +25,10 @@ public:
 protected:
     const char* path;
 
-    BackgroundMode m_BackgroundMode = BackgroundMode::PrefilteredEnvMap;
+    BackgroundMode m_BackgroundMode = BackgroundMode::EnvironmentMap;
 
 
 private:
-    void DrawMesh(IDeviceContext* pCtx, bool bIsShadowPass, const ViewFrustumExt& Frustum);
     void CreatePSO() override;
     void CreateVertexBuffer() override;
     void LoadModel(const char* Path);

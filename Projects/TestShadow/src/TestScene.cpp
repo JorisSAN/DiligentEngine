@@ -65,8 +65,10 @@ void TestScene::Initialize(const SampleInitInfo& InitInfo)
     m_Camera.SetMoveSpeed(5.f);
     m_Camera.SetSpeedUpScales(5.f, 10.f);
 
+    envMaps.reset(new EnvMap(Init, m_BackgroundMode));
+
     actors.emplace_back(new Helmet(Init, m_BackgroundMode));
-    actors.emplace_back(new Sphere(Init, m_BackgroundMode));
+    actors.emplace_back(new AnimPeople(Init, m_BackgroundMode));
 
     for (auto actor : actors)
     {
@@ -86,6 +88,8 @@ void TestScene::Render()
     const float ClearColor[] = {0.23f, 0.5f, 0.74f, 1.0f};
     m_pImmediateContext->ClearRenderTarget(pRTV, ClearColor, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
     m_pImmediateContext->ClearDepthStencil(pDSV, CLEAR_DEPTH_FLAG, 1.f, 0, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+
+    envMaps->RenderActor(m_Camera, false);
 
     for (auto actor : actors)
     {

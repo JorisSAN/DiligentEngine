@@ -46,6 +46,8 @@ public:
     Actor(const Actor&) = delete;
     Actor& operator=(const Actor&) = delete;
 
+    virtual ~Actor();
+
     virtual void Initialize(const SampleInitInfo& InitInfo) override;
 
     void            Render() override final {};
