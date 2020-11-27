@@ -41,12 +41,24 @@ namespace Diligent
 class TestScene final : public SampleBase
 {
 public:
+
+    static TestScene& instance()
+    {
+        static TestScene inst;
+        return inst;
+    }
+
     virtual void GetEngineInitializationAttribs(RENDER_DEVICE_TYPE DeviceType, EngineCreateInfo& EngineCI, SwapChainDesc& SCDesc) override final;
 
     virtual void Initialize(const SampleInitInfo& InitInfo) override final;
 
     virtual void Render() override final;
     virtual void Update(double CurrTime, double ElapsedTime) override final;
+
+    SampleInitInfo getInitInfo() { return Init; }
+
+    void removeActor(Actor* actor);
+    void addActor(Actor* actor);
 
     virtual const Char* GetSampleName() const override final { return "Scene"; }
 

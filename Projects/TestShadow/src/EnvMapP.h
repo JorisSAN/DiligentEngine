@@ -1,6 +1,5 @@
 #pragma once
 #include "Actor.h"
-#include "GLTFLoader.hpp"
 #include "GLTF_PBR_Renderer.hpp"
 #include "Camera.h"
 #include "EnvMap.h"

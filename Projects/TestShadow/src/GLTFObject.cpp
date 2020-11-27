@@ -148,33 +148,36 @@ void GLTFObject::setObjectPath(const char* pathP)
 // Render a frame
 void GLTFObject::RenderActor(const Camera& camera, bool IsShadowPass)
 {
+    if (state == ActorState::Active)
     {
-        MapHelper<LightAttribs> lightAttribs(m_pImmediateContext, m_VSConstants, MAP_WRITE, MAP_FLAG_DISCARD);
-        lightAttribs->f4Direction = m_LightDirection;
-        lightAttribs->f4Intensity = m_LightColor * m_LightIntensity;
+        {
+            MapHelper<LightAttribs> lightAttribs(m_pImmediateContext, m_VSConstants, MAP_WRITE, MAP_FLAG_DISCARD);
+            lightAttribs->f4Direction = m_LightDirection;
+            lightAttribs->f4Intensity = m_LightColor * m_LightIntensity;
+        }
+
+        // Get pretransform matrix that rotates the scene according the surface orientation
+        auto SrfPreTransform = GetSurfacePretransformMatrix(float3{0, 0, 1});
+
+        const auto  CameraView     = camera.m_ViewMatrix * SrfPreTransform;
+        const auto& CameraWorld    = camera.GetWorldMatrix();
+        float3      CameraWorldPos = float3::MakeVector(CameraWorld[3]);
+        const auto& Proj           = GetAdjustedProjectionMatrix(PI_F / 4.0f, 0.1f, 100.f);
+
+        auto CameraViewProj = CameraView * Proj;
+
+        m_RenderParams.ModelTransform = m_WorldMatrix;
+
+        {
+            MapHelper<CameraAttribs> CamAttribs(m_pImmediateContext, m_VertexBuffer, MAP_WRITE, MAP_FLAG_DISCARD);
+            CamAttribs->mProjT        = Proj.Transpose();
+            CamAttribs->mViewProjT    = CameraViewProj.Transpose();
+            CamAttribs->mViewProjInvT = CameraViewProj.Inverse().Transpose();
+            CamAttribs->f4Position    = float4(CameraWorldPos, 1);
+        }
+
+        m_GLTFRenderer->Render(m_pImmediateContext, *m_Model, m_RenderParams);
     }
-
-    // Get pretransform matrix that rotates the scene according the surface orientation
-    auto SrfPreTransform = GetSurfacePretransformMatrix(float3{0, 0, 1});
-
-    const auto  CameraView     = camera.m_ViewMatrix * SrfPreTransform;
-    const auto& CameraWorld    = camera.GetWorldMatrix();
-    float3      CameraWorldPos = float3::MakeVector(CameraWorld[3]);
-    const auto& Proj           = GetAdjustedProjectionMatrix(PI_F / 4.0f, 0.1f, 100.f);
-
-    auto CameraViewProj = CameraView * Proj;
-
-    m_RenderParams.ModelTransform = m_WorldMatrix;
-
-    {
-        MapHelper<CameraAttribs> CamAttribs(m_pImmediateContext, m_VertexBuffer, MAP_WRITE, MAP_FLAG_DISCARD);
-        CamAttribs->mProjT        = Proj.Transpose();
-        CamAttribs->mViewProjT    = CameraViewProj.Transpose();
-        CamAttribs->mViewProjInvT = CameraViewProj.Inverse().Transpose();
-        CamAttribs->f4Position    = float4(CameraWorldPos, 1);
-    }
-
-    m_GLTFRenderer->Render(m_pImmediateContext, *m_Model, m_RenderParams);
 }
 
 void GLTFObject::UpdateActor(double CurrTime, double ElapsedTime)

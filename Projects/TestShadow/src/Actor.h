@@ -30,17 +30,27 @@
 #include "SampleBase.hpp"
 #include "BasicMath.hpp"
 #include "Camera.h"
+#include "EnvMap.h"
 #include <vector>
 
 
 namespace Diligent
 {
 
+class TestScene;
 class Component;
 
 class Actor : public SampleBase
 {
 public:
+
+    enum class ActorState
+    {
+        Active,
+        Paused,
+        Dead
+    };
+
     Actor();
     Actor(const SampleInitInfo& InitInfo);
     Actor(const Actor&) = delete;
@@ -64,12 +74,17 @@ public:
     float      getScale() { return scale; }
     Quaternion getRotation() { return rotation; }
     float3     getPosition() { return position; }
+    ActorState getState() { return state; }
 
     void setScale(float scaleP) { scale = scaleP; }
     void setRotation(Quaternion rotationP) { rotation = rotationP; }
     void setPosition(float3 positionP) { position = positionP; }
+    void setState(ActorState stateP) { state = stateP; }
 
 protected:
+    TestScene& scene;
+    ActorState state = ActorState::Active;
+
     RefCntAutoPtr<IPipelineState>         m_pPSO;
     RefCntAutoPtr<IBuffer>                m_VertexBuffer;
     RefCntAutoPtr<IBuffer>                m_IndexBuffer;
