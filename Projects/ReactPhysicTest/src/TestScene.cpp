@@ -28,6 +28,7 @@
 #include <vector>
 #include <fstream>
 #include <stdio.h>
+#include <ReactPhysic.h>
 
 #include "TestScene.hpp"
 #include "MapHelper.hpp"
@@ -36,6 +37,9 @@
 #include "TexturedCube.hpp"
 #include "Cube.h"
 #include "Plane.h"
+#include "Component.h"
+#include "RigidbodyComponent.h"
+
 
 
 namespace Diligent
@@ -55,28 +59,36 @@ void TestScene::GetEngineInitializationAttribs(RENDER_DEVICE_TYPE DeviceType, En
 
 void TestScene::Initialize(const SampleInitInfo& InitInfo)
 {
+    //Initialize react physic 3d
+    _reactPhysic = new ReactPhysic();
+    reactphysics3d::Vector3    position(0, 20, 0);
+    reactphysics3d::Quaternion orientation = reactphysics3d::Quaternion::identity();
+    _reactPhysic->AddRigidbody(position, orientation);
+
     SampleBase::Initialize(InitInfo);
     Init = InitInfo;
 
-    actors.emplace_back(new Cube(Init));
-    actors.emplace_back(new Cube(Init));
+    //Create scene elements
+
+    //Create a cube and it's rigidbody
+    Cube* cube1 = new Cube(Init);
+    reactphysics3d::Transform cubeTransform(reactphysics3d::Vector3::zero(), reactphysics3d::Quaternion::identity());
+    RigidbodyComponent* rb = new RigidbodyComponent(cube1->GetActor(), cubeTransform, _reactPhysic->GetPhysicWorld());
+    cube1->addComponent(rb);
+    actors.emplace_back(cube1);
+
     actors.emplace_back(new Plane(Init));
     int i = 0;
 
+    /*
     for (auto actor : actors)
     {
         actor->setPosition(float3(3.0f * i, 0.0f, 0.0f));
         i++;
     }
+    */
 
     CreateShadowMapVisPSO();
-
-    //Initialize react physic 3d
-    _reactPhysic = new ReactPhysic();
-    reactphysics3d::Vector3 position(0, 20, 0);
-    reactphysics3d::Quaternion orientation = reactphysics3d::Quaternion::identity();
-    _reactPhysic->AddRigidbody(position, orientation);
-
 }
 
 // Render a frame
@@ -178,13 +190,22 @@ void TestScene::CreateShadowMapVisPSO()
 void TestScene::Update(double CurrTime, double ElapsedTime)
 {
     SampleBase::Update(CurrTime, ElapsedTime);
-    std::cout << "Body Position " << std::endl;
+    //React physic
+    _reactPhysic->Update();
+
     // Animate the cube
     for (auto actor : actors)
     {
-        std::cout << "Body Position " << std::endl;
         actor->Update(CurrTime, ElapsedTime);
     }
+
+    /*
+    string message = "log test\n";
+    log.addInfo(message);
+    //log update
+    log.Draw();
+    */
+    
 
     float4x4 CameraView = float4x4::Translation(0.f, -5.0f, -10.0f) * float4x4::RotationY(PI_F) * float4x4::RotationX(-PI_F * 0.2);
 
@@ -197,8 +218,7 @@ void TestScene::Update(double CurrTime, double ElapsedTime)
     // Compute camera view-projection matrix
     m_CameraViewProjMatrix = CameraView * SrfPreTransform * Proj;
 
-    //React physic
-    _reactPhysic->Update();
+    
 }
 
 

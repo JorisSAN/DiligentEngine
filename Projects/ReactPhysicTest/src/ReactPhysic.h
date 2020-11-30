@@ -15,6 +15,9 @@ public:
     void Update();
     void AddRigidbody(Vector3 position, Quaternion orientation);
 
+    //Getter and setters
+    PhysicsWorld* GetPhysicWorld();
+    const decimal GetTimeStep();
 
 private:
     PhysicsCommon _physicsCommon;

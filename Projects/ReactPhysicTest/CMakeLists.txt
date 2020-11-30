@@ -10,6 +10,8 @@ set(SOURCE
     src/Plane.cpp
     src/TexturedCube.cpp
     src/ReactPhysic.cpp
+    src/Log.cpp
+    src/RigidbodyComponent.cpp
 )
 
 set(INCLUDE
@@ -20,6 +22,8 @@ set(INCLUDE
     src/Plane.h
     src/TexturedCube.hpp
     src/ReactPhysic.h
+    src/Log.h
+    src/RigidbodyComponent.h
 )
 
 set(SHADERS

@@ -16,6 +16,7 @@ void ReactPhysic::Update()
 {
     _world->update(timeStep);
 
+    /*
     std::ofstream myfile;
     myfile.open("example.txt", std::ofstream::out | std::ofstream::app);
     
@@ -28,9 +29,8 @@ void ReactPhysic::Update()
         // Display the position of the body
         myfile << "Body Position: (" << position.x << ", " << position.y << ", " << position.z << ")\n";
         }
-
-
     myfile.close();
+    */
 }
 
 void ReactPhysic::AddRigidbody(Vector3 position, Quaternion orientation)
@@ -39,4 +39,15 @@ void ReactPhysic::AddRigidbody(Vector3 position, Quaternion orientation)
     Transform  transform(position, orientation);
     RigidBody* body = _world->createRigidBody(transform);
     _rigidbodyList.push_back(body);
+}
+
+//Getter and setter
+PhysicsWorld* ReactPhysic::GetPhysicWorld()
+{
+    return _world;
+}
+
+const decimal ReactPhysic::GetTimeStep()
+{
+    return timeStep;
 }

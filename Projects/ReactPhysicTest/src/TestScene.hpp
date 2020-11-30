@@ -32,6 +32,7 @@
 #include "BasicMath.hpp"
 #include "Actor.h"
 #include "ReactPhysic.h"
+#include "Log.h"
 
 namespace Diligent
 {
@@ -47,6 +48,8 @@ public:
     virtual void Update(double CurrTime, double ElapsedTime) override final;
 
     virtual const Char* GetSampleName() const override final { return "TestScene"; }
+
+    //Log log;
 
 private:
     void CreateShadowMapVisPSO();
