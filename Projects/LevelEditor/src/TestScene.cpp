@@ -379,7 +379,7 @@ void TestScene::CreateShadowMapVisPSO()
 }
 
 
-void TestScene::UpdateUI()
+void TestScene::UpdateUI(bool showMidUI)
 {
     ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Level Editor", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
@@ -429,6 +429,17 @@ void TestScene::UpdateUI()
             {
                 actors.at(indexActors)->setScale(scal);
             }
+            
+            if (ImGui::Button("delete")) {
+                auto begin = actors.begin();
+                for (int index = 0; index < indexActors; index++) {
+                    begin++;
+                }
+                //remplacer par le destructeur correcte par la suite 
+                actors.erase(begin);
+                indexActors = -1;
+            }
+            
         }
 
 
@@ -471,6 +482,93 @@ void TestScene::UpdateUI()
         }
     }
     ImGui::End();
+    
+    MouseState mouseState = m_InputController.GetMouseState();
+    if (mouseState.ButtonFlags & MouseState::BUTTON_FLAG_RIGHT)
+    {
+        m_LastMouseState = mouseState;
+    }
+    if (m_LastMouseState.ButtonFlags)
+    {
+        
+        //remplacer ImVec2 par l'emplacement de la souris
+        ImGui::SetNextWindowPos(ImVec2(m_LastMouseState.PosX, m_LastMouseState.PosY));
+        if (ImGui::Begin("Object Editor", nullptr))
+        {
+
+            if (true) {
+                ImGui::InputText("Name of class", nameSelected, IM_ARRAYSIZE(nameSelected));
+                ImGui::SameLine();
+                if (ImGui::Button("Create"))
+                {
+                    std::stringstream ss;
+                    ss << nameSelected;
+                    std::string s = ss.str();
+
+                    CreateAdaptedActor(s, varInitInfo);
+                }
+            }
+            else
+            {
+
+
+                static bool TransformOpen = true;
+                static bool EditOpen      = true;
+
+                static ImGuiTabBarFlags opt_fitting_flags = ImGuiTabBarFlags_FittingPolicyDefault_;
+                static bool             opt_reorderable   = true;
+                ImGuiTabBarFlags        tab_bar_flags     = (opt_fitting_flags) | (opt_reorderable ? ImGuiTabBarFlags_Reorderable : 0);
+                if (ImGui::BeginTabBar("##tabs", tab_bar_flags))
+                {
+                    if (ImGui::BeginTabItem("Transform", &TransformOpen))
+                    {
+                        float3 coord    = actors.at(0)->getPosition();
+                        float  vec4i[4] = {coord.x, coord.y, coord.z, 1};
+                        if (ImGui::InputFloat3("coord", vec4i))
+                        {
+                            coord = float3(vec4i[0], vec4i[1], vec4i[2]);
+                            actors.at(0)->setPosition(coord);
+                        }
+
+                        float3 euler       = ToEulerAngles(actors.at(0)->getRotation());
+                        float  dosvec4i[4] = {euler.x, euler.y, euler.z, 1};
+
+
+                        if (ImGui::InputFloat3("Rotation", dosvec4i))
+                        {
+
+                            euler           = float3(dosvec4i[0], dosvec4i[1], dosvec4i[2]);
+                            Quaternion test = ToQuaternion(euler);
+                            actors.at(0)->setRotation(test);
+                        }
+
+                        float scal = actors.at(0)->getScale();
+                        if (ImGui::InputFloat("Scale", &scal))
+                        {
+                            actors.at(0)->setScale(scal);
+                        }
+                        ImGui::EndTabItem();
+                    }
+
+
+                    if (ImGui::BeginTabItem("Edit item", &EditOpen))
+                    {
+
+                        if (ImGui::Button("delete"))
+                        {
+                            auto begin = actors.begin();
+                            actors.erase(begin);
+                            indexActors = -1;
+                        }
+
+                        ImGui::EndTabItem();
+                    }
+                }
+                ImGui::EndTabBar();
+            }
+        }
+        ImGui::End();
+    }
 }
 void TestScene::SaveLevel(std::string fileName)
 {
@@ -500,7 +598,7 @@ void TestScene::SaveLevel(std::string fileName)
 void TestScene::Update(double CurrTime, double ElapsedTime)
 {
     SampleBase::Update(CurrTime, ElapsedTime);
-    UpdateUI();
+    UpdateUI(true);
     log.Draw();
     // Animate the cube
     for (auto actor : actors)

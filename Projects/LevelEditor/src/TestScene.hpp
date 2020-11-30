@@ -53,7 +53,7 @@ public:
     void ReadFile(std::string fileName, const SampleInitInfo& InitInfo);
     void         CreateAdaptedActor(std::string actorClass, const SampleInitInfo& InitInfo);
     void         SaveLevel(std::string fileName);
-    void                UpdateUI();
+    void                UpdateUI(bool showMidUI);
     bool                Unproject(float windowsX, float windowsY, float windowsZ, const float4x4& modelView, float4x4& projection, float3& worldCoordinate);
     std::vector<Actor*> Pick(float x, float y);
     
@@ -77,6 +77,7 @@ public:
     MouseState              m_LastMouseState;
 //    Camera                  m_Camera;
     Log log;
+
 
 };
 
