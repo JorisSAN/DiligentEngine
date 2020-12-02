@@ -58,6 +58,9 @@ void TestScene::Initialize(const SampleInitInfo& InitInfo)
 {
     SampleBase::Initialize(InitInfo);
 
+    //Initialize react physic 3d
+    _reactPhysic = new ReactPhysic();
+
     Init = InitInfo;
 
     m_Camera.SetPos(float3(-5.0f, 0.0f, 0.0f));
@@ -68,8 +71,23 @@ void TestScene::Initialize(const SampleInitInfo& InitInfo)
 
     envMaps.reset(new EnvMap(Init, m_BackgroundMode));
 
-    actors.emplace_back(new Helmet(Init, m_BackgroundMode));
-    actors.emplace_back(new AnimPeople(Init, m_BackgroundMode));
+    ActorCreation();
+}
+
+void TestScene::ActorCreation()
+{
+    //Create actor and their components
+    //Create Helmet
+    Helmet*                    helmet1 = new Helmet(Init, m_BackgroundMode);
+    reactphysics3d::Transform helmetTransform(reactphysics3d::Vector3::zero(), reactphysics3d::Quaternion::identity());
+    RigidbodyComponent*       helmetRigidbody = new RigidbodyComponent(helmet1->GetActor(), helmetTransform, _reactPhysic->GetPhysicWorld());
+    helmet1->addComponent(helmetRigidbody);
+
+    //Create Anim people
+    AnimPeople* animPeople1 = new AnimPeople(Init, m_BackgroundMode);
+
+    actors.emplace_back(helmet1);
+    actors.emplace_back(animPeople1);
 
     for (auto actor : actors)
     {
@@ -104,6 +122,10 @@ void TestScene::Render()
 void TestScene::Update(double CurrTime, double ElapsedTime)
 {
     SampleBase::Update(CurrTime, ElapsedTime);
+
+    //React physic
+    _reactPhysic->Update();
+
 
     m_Camera.Update(m_InputController, static_cast<float>(ElapsedTime));
 

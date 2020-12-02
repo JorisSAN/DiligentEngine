@@ -34,6 +34,9 @@
 #include "Camera.h"
 #include "EnvMap.h"
 #include "EnvMapP.h"
+#include "ReactPhysic.hpp"
+#include "Component.h"
+#include "RigidbodyComponent.hpp"
 
 namespace Diligent
 {
@@ -63,6 +66,7 @@ public:
     virtual const Char* GetSampleName() const override final { return "Scene"; }
 
 private:
+    //Attributes 
     RefCntAutoPtr<IBuffer> m_CameraAttribsCB;
 
     BackgroundMode m_BackgroundMode = BackgroundMode::EnvironmentMap;
@@ -76,6 +80,13 @@ private:
     std::unique_ptr<EnvMap> envMaps;
 
     SampleInitInfo Init;
+
+    //React physic 3d
+    ReactPhysic* _reactPhysic;
+
+
+    //Functions
+    void ActorCreation();
 };
 
 } // namespace Diligent

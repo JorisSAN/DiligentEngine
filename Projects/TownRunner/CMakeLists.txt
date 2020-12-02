@@ -12,6 +12,9 @@ set(SOURCE
     src/AnimPeople.cpp
     src/GLTFObject.cpp
     src/EnvMapP.cpp
+    src/ReactPhysic.cpp
+    src/RigidbodyComponent.cpp
+    src/Log.cpp
 )
 
 set(INCLUDE
@@ -25,6 +28,9 @@ set(INCLUDE
     src/GLTFObject.h
     src/EnvMap.h
     src/EnvMapP.h
+    src/ReactPhysic.hpp
+    src/RigidbodyComponent.hpp
+    src/Log.h
 )
 
 set(SHADERS
@@ -216,6 +222,10 @@ set_source_files_properties(${PLANE} PROPERTIES
     VS_DEPLOYMENT_LOCATION "models/Plane"
     MACOSX_PACKAGE_LOCATION "Resources/models/Plane"
 )
+
+
+#Add C++ Include Directories
+include_directories(${CMAKE_SOURCE_DIR}/ReactPhysics3D/include)
 
 source_group("assets" FILES ${ASSETS})
 source_group("assets\\shaders" FILES ${SHADERS})
