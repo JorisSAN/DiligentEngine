@@ -1857,6 +1857,18 @@ struct Quaternion
         return mat;
     }
 
+    static Quaternion concatenate(const Quaternion& q, const Quaternion& p)
+    {
+
+        // Vector component is:
+        // ps * qv + qs * pv + pv x qv
+        float3 qv(q.get_q()[0], q.get_q()[1], q.get_q()[2]);
+        float3 pv(p.get_q()[0], p.get_q()[1], p.get_q()[2]);
+        float3 newVec = p.get_q()[3] * qv + q.get_q()[3] * pv + cross(pv, qv);
+
+        return Quaternion(newVec.x, newVec.y, newVec.z, p.get_q()[3] * q.get_q()[3] - dot(pv, qv));
+    }
+
     float4x4 ToMatrix() const
     {
         float4x4 out;

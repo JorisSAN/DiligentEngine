@@ -105,8 +105,6 @@ void EnvMap::Initialize(const SampleInitInfo& InitInfo)
     m_GLTFRenderer->PrecomputeCubemaps(m_pDevice, m_pImmediateContext, m_TextureSRV);
 
     CreatePSO();
-
-    m_LightDirection = normalize(float3(0.5f, -0.6f, -0.2f));
 }
 
 void EnvMap::CreatePSO()
@@ -208,11 +206,6 @@ void EnvMap::CreateVertexBuffer()
 // Render a frame
 void EnvMap::RenderActor(const Camera& camera, bool IsShadowPass)
 {
-    {
-        MapHelper<LightAttribs> lightAttribs(m_pImmediateContext, m_VSConstants, MAP_WRITE, MAP_FLAG_DISCARD);
-        lightAttribs->f4Direction = m_LightDirection;
-        lightAttribs->f4Intensity = m_LightColor * m_LightIntensity;
-    }
 
     // Get pretransform matrix that rotates the scene according the surface orientation
     auto SrfPreTransform = GetSurfacePretransformMatrix(float3{0, 0, 1});

@@ -32,7 +32,6 @@
 #include "Camera.h"
 #include "EnvMap.h"
 #include <vector>
-#include <string>
 
 
 namespace Diligent
@@ -82,11 +81,6 @@ public:
     void setPosition(float3 positionP) { position = positionP; }
     void setState(ActorState stateP) { state = stateP; }
 
-    Actor* GetActor() { return this; }
-
-    std::string GetActorName() { return _actorName; }
-    void        SetActorName(std::string newName) { _actorName = newName; }
-
 protected:
     TestScene& scene;
     ActorState state = ActorState::Active;
@@ -102,10 +96,8 @@ protected:
     float4x4       m_ContextInit = float4x4::Identity();
 
     float      scale    = 1.0f;
-    Quaternion rotation = Quaternion(0.0f, 0.0f, 0.0f, 1.0f);
+    Quaternion rotation = Quaternion::RotationFromAxisAngle(float3(1, 0, 0), PI_F);
     float3     position = float3(0.0f, 0.0f, 0.0f);
-
-    std::string _actorName;
 
 private:
     virtual void CreatePSO() {}
