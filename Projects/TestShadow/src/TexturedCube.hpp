@@ -26,58 +26,31 @@
  */
 
 #pragma once
-#include <vector>
-#include <unordered_map>
 
-#include "SampleBase.hpp"
-#include "BasicMath.hpp"
-#include "Actor.h"
-#include "Camera.h"
-#include "EnvMap.h"
-#include "EnvMapP.h"
-#include "Light.h"
+#include "RenderDevice.h"
+#include "Buffer.h"
+#include "RefCntAutoPtr.hpp"
 
 namespace Diligent
 {
 
-class TestScene final : public SampleBase
+namespace TexturedCube
 {
-public:
 
-    static TestScene& instance()
-    {
-        static TestScene inst;
-        return inst;
-    }
+RefCntAutoPtr<IBuffer>  CreateVertexBuffer(IRenderDevice* pDevice);
+RefCntAutoPtr<IBuffer>  CreateIndexBuffer(IRenderDevice* pDevice);
+RefCntAutoPtr<ITexture> LoadTexture(IRenderDevice* pDevice, const char* Path);
 
-    virtual void GetEngineInitializationAttribs(RENDER_DEVICE_TYPE DeviceType, EngineCreateInfo& EngineCI, SwapChainDesc& SCDesc) override final;
+RefCntAutoPtr<IPipelineState> CreatePipelineState(IRenderDevice*                   pDevice,
+                                                  TEXTURE_FORMAT                   RTVFormat,
+                                                  TEXTURE_FORMAT                   DSVFormat,
+                                                  IShaderSourceInputStreamFactory* pShaderSourceFactory,
+                                                  const char*                      VSFilePath,
+                                                  const char*                      PSFilePath,
+                                                  LayoutElement*                   LayoutElements    = nullptr,
+                                                  Uint32                           NumLayoutElements = 0,
+                                                  Uint8                            SampleCount       = 1);
 
-    virtual void Initialize(const SampleInitInfo& InitInfo) override final;
-
-    virtual void Render() override final;
-    virtual void Update(double CurrTime, double ElapsedTime) override final;
-
-    SampleInitInfo getInitInfo() { return Init; }
-
-    void removeActor(Actor* actor);
-
-    virtual const Char* GetSampleName() const override final { return "Scene"; }
-
-private:
-    RefCntAutoPtr<IBuffer> m_CameraAttribsCB;
-
-    BackgroundMode m_BackgroundMode = BackgroundMode::EnvironmentMap;
-
-    Camera m_Camera;
-
-    MouseState m_LastMouseState;
-
-    std::vector<Actor*> actors;
-
-    std::unique_ptr<EnvMap> envMaps;
-    std::unique_ptr<Light> lights;
-
-    SampleInitInfo Init;
-};
+} // namespace TexturedCube
 
 } // namespace Diligent

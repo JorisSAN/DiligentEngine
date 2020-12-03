@@ -69,6 +69,12 @@ GLTFObject::GLTFObject(const SampleInitInfo& InitInfo)
     Initialize(InitInfo);
 }
 
+GLTFObject::~GLTFObject()
+{
+    m_GLTFRenderer.reset();
+    m_Model.reset();
+}
+
 void GLTFObject::LoadModel(const char* Path)
 {
     if (m_Model)

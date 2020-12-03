@@ -13,6 +13,8 @@ public:
     EnvMap();
     EnvMap(const SampleInitInfo& InitInfo, BackgroundMode BackgroundMode);
 
+    ~EnvMap();
+
     void Initialize(const SampleInitInfo& InitInfo) override;
 
     void RenderActor(const Camera& camera, bool IsShadowPass) override;
@@ -29,9 +31,6 @@ private:
 
     GLTF_PBR_Renderer::RenderInfo m_RenderParams;
 
-    float3 m_LightDirection;
-    float4 m_LightColor     = float4(1, 1, 1, 1);
-    float  m_LightIntensity = 3.f;
     float  m_EnvMapMipLevel = 1.f;
     int    m_SelectedModel  = 3;
 
