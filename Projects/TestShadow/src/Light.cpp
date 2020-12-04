@@ -70,106 +70,6 @@ void Light::GetEngineInitializationAttribs(RENDER_DEVICE_TYPE DeviceType,
     SCDesc.DepthBufferFormat = TEX_FORMAT_UNKNOWN;
 }
 
-
-void Light::CreateCubePSO(IShaderSourceInputStreamFactory* pShaderSourceFactory)
-{
-    GraphicsPipelineStateCreateInfo PSOCreateInfo;
-    PipelineStateDesc&              PSODesc = PSOCreateInfo.PSODesc;
-
-    // Pipeline state name is used by the engine to report issues.
-    PSODesc.Name = "Cube PSO";
-
-    PSOCreateInfo.GraphicsPipeline.pRenderPass  = m_pRenderPass;
-    PSOCreateInfo.GraphicsPipeline.SubpassIndex = 0; // This PSO will be used within the first subpass
-    // When pRenderPass is not null, all RTVFormats and DSVFormat must be TEX_FORMAT_UNKNOWN,
-    // while NumRenderTargets must be 0
-
-    PSOCreateInfo.GraphicsPipeline.PrimitiveTopology            = PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-    PSOCreateInfo.GraphicsPipeline.RasterizerDesc.CullMode      = CULL_MODE_BACK;
-    PSOCreateInfo.GraphicsPipeline.DepthStencilDesc.DepthEnable = True;
-
-    ShaderCreateInfo ShaderCI;
-    // Tell the system that the shader source code is in HLSL.
-    // For OpenGL, the engine will convert this into GLSL under the hood.
-    ShaderCI.SourceLanguage = SHADER_SOURCE_LANGUAGE_HLSL;
-
-    // OpenGL backend requires emulated combined HLSL texture samplers (g_Texture + g_Texture_sampler combination)
-    ShaderCI.UseCombinedTextureSamplers = true;
-
-    ShaderCI.pShaderSourceStreamFactory = pShaderSourceFactory;
-    // Create cube vertex shader
-    RefCntAutoPtr<IShader> pVS;
-    {
-        ShaderCI.Desc.ShaderType = SHADER_TYPE_VERTEX;
-        ShaderCI.EntryPoint      = "main";
-        ShaderCI.Desc.Name       = "Cube VS";
-        ShaderCI.FilePath        = "cube.vsh";
-        m_pDevice->CreateShader(ShaderCI, &pVS);
-        VERIFY_EXPR(pVS != nullptr);
-    }
-
-    // Create cube pixel shader
-    RefCntAutoPtr<IShader> pPS;
-    {
-        ShaderCI.Desc.ShaderType = SHADER_TYPE_PIXEL;
-        ShaderCI.EntryPoint      = "main";
-        ShaderCI.Desc.Name       = "Cube PS";
-        ShaderCI.FilePath        = "cube.psh";
-        m_pDevice->CreateShader(ShaderCI, &pPS);
-        VERIFY_EXPR(pPS != nullptr);
-    }
-
-    // clang-format off
-    const LayoutElement LayoutElems[] =
-    {
-        LayoutElement{0, 0, 3, VT_FLOAT32, False}, // Attribute 0 - vertex position
-        LayoutElement{1, 0, 2, VT_FLOAT32, False}  // Attribute 1 - texture coordinates
-    };
-    // clang-format on
-
-    PSOCreateInfo.pVS = pVS;
-    PSOCreateInfo.pPS = pPS;
-
-    PSOCreateInfo.GraphicsPipeline.InputLayout.LayoutElements = LayoutElems;
-    PSOCreateInfo.GraphicsPipeline.InputLayout.NumElements    = _countof(LayoutElems);
-
-    // Define variable type that will be used by default
-    PSODesc.ResourceLayout.DefaultVariableType = SHADER_RESOURCE_VARIABLE_TYPE_STATIC;
-
-    // clang-format off
-    ShaderResourceVariableDesc Vars[] = 
-    {
-        {SHADER_TYPE_PIXEL, "g_Texture", SHADER_RESOURCE_VARIABLE_TYPE_MUTABLE}
-    };
-    // clang-format on
-    PSODesc.ResourceLayout.Variables    = Vars;
-    PSODesc.ResourceLayout.NumVariables = _countof(Vars);
-
-    // clang-format off
-    // Define immutable sampler for g_Texture.
-    SamplerDesc SamLinearClampDesc
-    {
-        FILTER_TYPE_LINEAR, FILTER_TYPE_LINEAR, FILTER_TYPE_LINEAR, 
-        TEXTURE_ADDRESS_CLAMP, TEXTURE_ADDRESS_CLAMP, TEXTURE_ADDRESS_CLAMP
-    };
-    ImmutableSamplerDesc ImtblSamplers[] = 
-    {
-        {SHADER_TYPE_PIXEL, "g_Texture", SamLinearClampDesc}
-    };
-    // clang-format on
-    PSODesc.ResourceLayout.ImmutableSamplers    = ImtblSamplers;
-    PSODesc.ResourceLayout.NumImmutableSamplers = _countof(ImtblSamplers);
-
-    m_pDevice->CreateGraphicsPipelineState(PSOCreateInfo, &m_pCubePSO);
-    VERIFY_EXPR(m_pCubePSO != nullptr);
-
-    m_pCubePSO->GetStaticVariableByName(SHADER_TYPE_VERTEX, "ShaderConstants")->Set(m_pShaderConstantsCB);
-
-    m_pCubePSO->CreateShaderResourceBinding(&m_pCubeSRB, true);
-    VERIFY_EXPR(m_pCubeSRB != nullptr);
-    m_pCubeSRB->GetVariableByName(SHADER_TYPE_PIXEL, "g_Texture")->Set(m_CubeTextureSRV);
-}
-
 void Light::CreateLightVolumePSO(IShaderSourceInputStreamFactory* pShaderSourceFactory)
 {
     GraphicsPipelineStateCreateInfo PSOCreateInfo;
@@ -448,7 +348,6 @@ void Light::Initialize(const SampleInitInfo& InitInfo)
     // Load textured cube
     m_CubeVertexBuffer = TexturedCube::CreateVertexBuffer(m_pDevice);
     m_CubeIndexBuffer  = TexturedCube::CreateIndexBuffer(m_pDevice);
-    m_CubeTextureSRV   = TexturedCube::LoadTexture(m_pDevice, "DGLogo.png")->GetDefaultView(TEXTURE_VIEW_SHADER_RESOURCE);
 
     CreateRenderPass();
     CreateLightsBuffer();
@@ -458,7 +357,6 @@ void Light::Initialize(const SampleInitInfo& InitInfo)
     RefCntAutoPtr<IShaderSourceInputStreamFactory> pShaderSourceFactory;
     m_pEngineFactory->CreateDefaultShaderSourceStreamFactory(nullptr, &pShaderSourceFactory);
 
-    CreateCubePSO(pShaderSourceFactory);
     CreateLightVolumePSO(pShaderSourceFactory);
     CreateAmbientLightPSO(pShaderSourceFactory);
 
@@ -468,8 +366,7 @@ void Light::Initialize(const SampleInitInfo& InitInfo)
             {m_pShaderConstantsCB, RESOURCE_STATE_UNKNOWN, RESOURCE_STATE_CONSTANT_BUFFER, true},
             {m_CubeVertexBuffer, RESOURCE_STATE_UNKNOWN, RESOURCE_STATE_VERTEX_BUFFER, true},
             {m_CubeIndexBuffer, RESOURCE_STATE_UNKNOWN, RESOURCE_STATE_INDEX_BUFFER, true},
-            {m_pLightsBuffer, RESOURCE_STATE_UNKNOWN, RESOURCE_STATE_VERTEX_BUFFER, true},
-            {m_CubeTextureSRV->GetTexture(), RESOURCE_STATE_UNKNOWN, RESOURCE_STATE_SHADER_RESOURCE, true} //
+            {m_pLightsBuffer, RESOURCE_STATE_UNKNOWN, RESOURCE_STATE_VERTEX_BUFFER, true}
         };
 
     m_pImmediateContext->TransitionResourceStates(_countof(Barriers), Barriers);
@@ -597,30 +494,6 @@ IFramebuffer* Light::GetCurrentFramebuffer()
     }
 }
 
-void Light::DrawScene()
-{
-    // Bind vertex and index buffers
-    Uint32   offset   = 0;
-    IBuffer* pBuffs[] = {m_CubeVertexBuffer};
-    // Note that RESOURCE_STATE_TRANSITION_MODE_TRANSITION are not allowed inside render pass!
-    m_pImmediateContext->SetVertexBuffers(0, 1, pBuffs, &offset, RESOURCE_STATE_TRANSITION_MODE_VERIFY, SET_VERTEX_BUFFERS_FLAG_RESET);
-    m_pImmediateContext->SetIndexBuffer(m_CubeIndexBuffer, 0, RESOURCE_STATE_TRANSITION_MODE_VERIFY);
-
-    // Set the cube's pipeline state
-    m_pImmediateContext->SetPipelineState(m_pCubePSO);
-
-    // Commit the cube shader's resources
-    m_pImmediateContext->CommitShaderResources(m_pCubeSRB, RESOURCE_STATE_TRANSITION_MODE_VERIFY);
-
-    // Draw the grid
-    DrawIndexedAttribs DrawAttrs;
-    DrawAttrs.IndexType    = VT_UINT32; // Index type
-    DrawAttrs.NumIndices   = 36;
-    DrawAttrs.NumInstances = GridDim * GridDim;
-    DrawAttrs.Flags        = DRAW_FLAG_VERIFY_ALL; // Verify the state of vertex and index buffers
-    m_pImmediateContext->DrawIndexed(DrawAttrs);
-}
-
 void Light::ApplyLighting()
 {
     // Set the lighting PSO
@@ -719,32 +592,6 @@ void Light::InitLights()
 // Render a frame
 void Light::RenderActor(const Camera& camera, bool IsShadowPass)
 {
-    // Get pretransform matrix that rotates the scene according the surface orientation
-    auto SrfPreTransform = GetSurfacePretransformMatrix(float3{0, 0, 1});
-
-    const auto  CameraView     = camera.m_ViewMatrix * SrfPreTransform;
-    const auto& CameraWorld    = camera.GetWorldMatrix();
-    float3      CameraWorldPos = float3::MakeVector(CameraWorld[3]);
-    const auto& Proj           = GetAdjustedProjectionMatrix(PI_F / 4.0f, 0.1f, 100.f);
-
-    auto CameraViewProj = CameraView * Proj;
-
-    const auto& SCDesc = m_pSwapChain->GetDesc();
-
-    {
-        // Update constant buffer
-        MapHelper<ShaderConstants> Constants(m_pImmediateContext, m_pShaderConstantsCB, MAP_WRITE, MAP_FLAG_DISCARD);
-        Constants->ViewProjMatrix    = CameraViewProj.Transpose();
-        Constants->ViewProjInvMatrix = CameraViewProj.Inverse().Transpose();
-        Constants->ViewportSize      = float4{
-            static_cast<float>(SCDesc.Width),
-            static_cast<float>(SCDesc.Height),
-            1.f / static_cast<float>(SCDesc.Width),
-            1.f / static_cast<float>(SCDesc.Height) //
-        };
-        Constants->ShowLightVolumes = m_ShowLightVolumes ? 1 : 0;
-    }
-
     auto* pFramebuffer = GetCurrentFramebuffer();
 
     BeginRenderPassAttribs RPBeginInfo;
@@ -778,9 +625,33 @@ void Light::RenderActor(const Camera& camera, bool IsShadowPass)
     RPBeginInfo.StateTransitionMode = RESOURCE_STATE_TRANSITION_MODE_TRANSITION;
     m_pImmediateContext->BeginRenderPass(RPBeginInfo);
 
-    DrawScene();
-
     m_pImmediateContext->NextSubpass();
+
+    // Get pretransform matrix that rotates the scene according the surface orientation
+    auto SrfPreTransform = GetSurfacePretransformMatrix(float3{0, 0, 1});
+
+    const auto  CameraView     = camera.m_ViewMatrix * SrfPreTransform;
+    const auto& CameraWorld    = camera.GetWorldMatrix();
+    float3      CameraWorldPos = float3::MakeVector(CameraWorld[3]);
+    const auto& Proj           = GetAdjustedProjectionMatrix(PI_F / 4.0f, 0.1f, 100.f);
+
+    auto CameraViewProj = CameraView * Proj;
+
+    const auto& SCDesc = m_pSwapChain->GetDesc();
+
+    {
+        // Update constant buffer
+        MapHelper<ShaderConstants> Constants(m_pImmediateContext, m_pShaderConstantsCB, MAP_WRITE, MAP_FLAG_DISCARD);
+        Constants->ViewProjMatrix    = CameraViewProj.Transpose();
+        Constants->ViewProjInvMatrix = CameraViewProj.Inverse().Transpose();
+        Constants->ViewportSize      = float4{
+            static_cast<float>(SCDesc.Width),
+            static_cast<float>(SCDesc.Height),
+            1.f / static_cast<float>(SCDesc.Width),
+            1.f / static_cast<float>(SCDesc.Height) //
+        };
+        Constants->ShowLightVolumes = m_ShowLightVolumes ? 1 : 0;
+    }
 
     ApplyLighting();
 

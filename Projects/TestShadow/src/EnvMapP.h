@@ -33,8 +33,6 @@ private:
 
     float  m_EnvMapMipLevel = 1.f;
     int    m_SelectedModel  = 3;
-
-    std::unique_ptr<GLTF_PBR_Renderer>    m_GLTFRenderer;
 };
 
 } // namespace Diligent

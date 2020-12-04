@@ -71,7 +71,6 @@ EnvMap::EnvMap(const SampleInitInfo& InitInfo, BackgroundMode BackgroundMode) :
 
 EnvMap::~EnvMap()
 {
-    m_GLTFRenderer.reset();
 }
 
 void EnvMap::Initialize(const SampleInitInfo& InitInfo)
@@ -91,7 +90,6 @@ void EnvMap::Initialize(const SampleInitInfo& InitInfo)
     RendererCI.AllowDebugView = true;
     RendererCI.UseIBL         = true;
     RendererCI.FrontCCW       = true;
-    m_GLTFRenderer.reset(new GLTF_PBR_Renderer(m_pDevice, m_pImmediateContext, RendererCI));
 
     CreateUniformBuffer(m_pDevice, sizeof(CameraAttribs), "Camera attribs buffer", &m_VertexBuffer);
     CreateUniformBuffer(m_pDevice, sizeof(LightAttribs), "Light attribs buffer", &m_VSConstants);
@@ -106,8 +104,6 @@ void EnvMap::Initialize(const SampleInitInfo& InitInfo)
     };
     // clang-format on
     m_pImmediateContext->TransitionResourceStates(_countof(Barriers), Barriers);
-
-    m_GLTFRenderer->PrecomputeCubemaps(m_pDevice, m_pImmediateContext, m_TextureSRV);
 
     CreatePSO();
 }
@@ -191,14 +187,6 @@ void EnvMap::CreateVertexBuffer()
         {
             case BackgroundMode::EnvironmentMap:
                 pEnvMapSRV = m_TextureSRV;
-                break;
-
-            case BackgroundMode::Irradiance:
-                pEnvMapSRV = m_GLTFRenderer->GetIrradianceCubeSRV();
-                break;
-
-            case BackgroundMode::PrefilteredEnvMap:
-                pEnvMapSRV = m_GLTFRenderer->GetPrefilteredEnvMapSRV();
                 break;
 
             default:

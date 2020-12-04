@@ -52,7 +52,6 @@ public:
     void UpdateActor(double CurrTime, double ElapsedTime) override;
 
 private:
-    void CreateCubePSO(IShaderSourceInputStreamFactory* pShaderSourceFactory);
     void CreateLightVolumePSO(IShaderSourceInputStreamFactory* pShaderSourceFactory);
     void CreateAmbientLightPSO(IShaderSourceInputStreamFactory* pShaderSourceFactory);
     void CreateRenderPass();
@@ -77,8 +76,6 @@ private:
     };
 
     // Cube resources
-    RefCntAutoPtr<IPipelineState>         m_pCubePSO;
-    RefCntAutoPtr<IShaderResourceBinding> m_pCubeSRB;
     RefCntAutoPtr<IBuffer>                m_CubeVertexBuffer;
     RefCntAutoPtr<IBuffer>                m_CubeIndexBuffer;
     RefCntAutoPtr<IBuffer>                m_pShaderConstantsCB;
