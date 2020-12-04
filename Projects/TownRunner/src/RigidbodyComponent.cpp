@@ -37,6 +37,7 @@ RigidbodyComponent::~RigidbodyComponent()
 
 void RigidbodyComponent::update(double CurrTime, double ElapsedTime)
 {
+    //Update position
     reactphysics3d::Vector3 rbPosV3 = _rigidBody->getTransform().getPosition();
     float3                  rbPosF3 = float3(rbPosV3.x, rbPosV3.y, rbPosV3.z);
     owner.setPosition(rbPosF3);

@@ -38,6 +38,8 @@
 #include "AnimPeople.h"
 #include "InputController.hpp"
 #include "Actor.h"
+#include "Plane.h"
+#include "CollisionComponent.hpp"
 
 namespace Diligent
 {
@@ -63,8 +65,8 @@ void TestScene::Initialize(const SampleInitInfo& InitInfo)
 
     Init = InitInfo;
 
-    m_Camera.SetPos(float3(-5.0f, 0.0f, 0.0f));
-    m_Camera.SetRotation(PI_F / 2.f, 0, +PI_F);
+    m_Camera.SetPos(float3(5.0f, 0.0f, 0.0f));
+    m_Camera.SetRotation(PI_F / 2.f, 0, 0);
     m_Camera.SetRotationSpeed(0.005f);
     m_Camera.SetMoveSpeed(5.f);
     m_Camera.SetSpeedUpScales(5.f, 10.f);
@@ -78,22 +80,57 @@ void TestScene::ActorCreation()
 {
     //Create actor and their components
     //Create Helmet
-    Helmet*                    helmet1 = new Helmet(Init, m_BackgroundMode);
+    Helmet*                    helmet1 = new Helmet(Init, m_BackgroundMode, "helmet1");
+    helmet1->setPosition(float3(0, 0, 0));
     reactphysics3d::Transform helmetTransform(reactphysics3d::Vector3::zero(), reactphysics3d::Quaternion::identity());
-    RigidbodyComponent*       helmetRigidbody = new RigidbodyComponent(helmet1->GetActor(), helmetTransform, _reactPhysic->GetPhysicWorld());
-    helmet1->addComponent(helmetRigidbody);
 
-    //Create Anim people
-    AnimPeople* animPeople1 = new AnimPeople(Init, m_BackgroundMode);
+    //rb
+    RigidbodyComponent* helmetRigidbody = RigidbodyComponentCreation(helmet1, helmetTransform);
 
+    //collision
+    SphereShape* sphereShape = _reactPhysic->GetPhysicCommon()->createSphereShape(0.5);
+    CollisionComponentCreation(helmet1, helmetRigidbody, sphereShape, helmetTransform);
+
+
+
+    //Create a plane
+    Plane*                    plane1 = new Plane(Init, m_BackgroundMode, "plane1");
+    helmet1->setPosition(float3(0, -1, 0));
+    reactphysics3d::Transform planeTransform(reactphysics3d::Vector3(0, -1, 0), reactphysics3d::Quaternion::identity());
+
+    //rb
+    RigidbodyComponent* rbPlane = RigidbodyComponentCreation(plane1, planeTransform, BodyType::STATIC);
+
+    //collision
+    BoxShape* boxShape = _reactPhysic->GetPhysicCommon()->createBoxShape(reactphysics3d::Vector3(2.5, 0.01, 2.5));
+    CollisionComponentCreation(plane1, rbPlane, boxShape, planeTransform);
+    
+
+
+
+    //Add actor to list
     actors.emplace_back(helmet1);
-    actors.emplace_back(animPeople1);
-
-    for (auto actor : actors)
-    {
-        actor->setPosition(float3(0.0f, 0.0f, 0.0f));
-    }
+    actors.emplace_back(plane1);    
 }
+
+RigidbodyComponent* TestScene::RigidbodyComponentCreation(Actor* actor, reactphysics3d::Transform transform, BodyType type)
+{
+    RigidbodyComponent* rigidbody = new RigidbodyComponent(actor->GetActor(), transform, _reactPhysic->GetPhysicWorld());
+    rigidbody->GetRigidBody()->setType(type);
+    actor->addComponent(rigidbody);
+    return rigidbody;
+}
+
+void TestScene::CollisionComponentCreation(Actor* actor, RigidbodyComponent* rb, CollisionShape* shape, reactphysics3d::Transform transform)
+{
+    CollisionComponent* colisionComponent = new CollisionComponent(actor->GetActor(), shape);
+    colisionComponent->AddCollisionShape(shape);
+    colisionComponent->SetCollider(rb->GetRigidBody()->addCollider(shape, transform));
+    actor->addComponent(colisionComponent);
+}
+
+
+
 
 // Render a frame
 void TestScene::Render()
@@ -137,19 +174,6 @@ void TestScene::Update(double CurrTime, double ElapsedTime)
 
     if (m_InputController.IsKeyDown(InputKeys::MoveBackward))
         actors.back()->setState(Actor::ActorState::Dead);
-
-    // Delete dead actors
-    std::vector<Actor*> deadActors;
-    for (auto actor : actors)
-    {
-        if (actor->getState() == Actor::ActorState::Dead)
-        {
-            deadActors.emplace_back(actor);
-        }
-    }
-    for (auto deadActor : deadActors)
-    {
-    }
 }
 
 void TestScene::addActor(Actor* actor)

@@ -15,6 +15,8 @@ set(SOURCE
     src/ReactPhysic.cpp
     src/RigidbodyComponent.cpp
     src/Log.cpp
+    src/Plane.cpp
+    src/CollisionComponent.cpp
 )
 
 set(INCLUDE
@@ -31,6 +33,8 @@ set(INCLUDE
     src/ReactPhysic.hpp
     src/RigidbodyComponent.hpp
     src/Log.h
+    src/Plane.h
+    src/CollisionComponent.hpp
 )
 
 set(SHADERS

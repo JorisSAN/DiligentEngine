@@ -87,6 +87,8 @@ private:
 
     //Functions
     void ActorCreation();
+    RigidbodyComponent* RigidbodyComponentCreation(Actor* actor, reactphysics3d::Transform transform, BodyType type = BodyType::DYNAMIC);
+    void CollisionComponentCreation(Actor* actor, RigidbodyComponent* rb, CollisionShape* shape, reactphysics3d::Transform transform);
 };
 
 } // namespace Diligent

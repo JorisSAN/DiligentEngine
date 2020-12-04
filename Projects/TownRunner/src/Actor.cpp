@@ -50,6 +50,12 @@ Actor::Actor(const SampleInitInfo& InitInfo) :
     Initialize(InitInfo);
 }
 
+Actor::Actor(const SampleInitInfo& InitInfo, std::string name) :
+    scene(TestScene::instance()), _actorName(name)
+{
+    Initialize(InitInfo);
+}
+
 Actor::~Actor()
 {
     scene.removeActor(this);

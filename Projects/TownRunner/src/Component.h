@@ -14,6 +14,7 @@ public:
     {
         TComponent = 0,
         TRigidbodyComponent,
+        TCollisionComponent,
 
         NUM_COMPONENTS_TYPES
     };

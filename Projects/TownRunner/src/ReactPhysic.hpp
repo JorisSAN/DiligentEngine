@@ -15,6 +15,7 @@ public:
     void Update();
 
     //Getter and setters
+    PhysicsCommon* GetPhysicCommon() { return &_physicsCommon; }
     PhysicsWorld* GetPhysicWorld() { return _world; }
     const decimal GetTimeStep() { return _timeStep; }
 
