@@ -40,7 +40,7 @@ class Light : public Actor
 {
 public:
     Light();
-    Light(const SampleInitInfo& InitInfo);
+    Light(const SampleInitInfo& InitInfo, RefCntAutoPtr<IRenderPass>& RenderPass);
 
     virtual void GetEngineInitializationAttribs(RENDER_DEVICE_TYPE DeviceType,
                                                 EngineCreateInfo&  Attribs,
@@ -51,22 +51,16 @@ public:
     void RenderActor(const Camera& camera, bool IsShadowPass) override;
     void UpdateActor(double CurrTime, double ElapsedTime) override;
 
+    void CreateSRB(RefCntAutoPtr<ITexture> pColorBuffer, RefCntAutoPtr<ITexture> pDepthZBuffer);
+
 private:
     void CreateLightVolumePSO(IShaderSourceInputStreamFactory* pShaderSourceFactory);
     void CreateAmbientLightPSO(IShaderSourceInputStreamFactory* pShaderSourceFactory);
-    void CreateRenderPass();
-    void DrawScene();
     void ApplyLighting();
     void CreateLightsBuffer();
     void UpdateLights(float fElapsedTime);
     void InitLights();
     void ReleaseWindowResources();
-
-    RefCntAutoPtr<IFramebuffer> CreateFramebuffer(ITextureView* pDstRenderTarget);
-    IFramebuffer*               GetCurrentFramebuffer();
-
-    // Use 16-bit format to make sure it works on mobile devices
-    static constexpr TEXTURE_FORMAT DepthBufferFormat = TEX_FORMAT_D16_UNORM;
 
     struct LightAttribs
     {

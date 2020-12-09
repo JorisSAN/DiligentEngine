@@ -64,6 +64,18 @@ public:
     virtual const Char* GetSampleName() const override final { return "Scene"; }
 
 private:
+    void CreateRenderPass();
+
+    RefCntAutoPtr<IFramebuffer> CreateFramebuffer(ITextureView* pDstRenderTarget);
+    IFramebuffer*               GetCurrentFramebuffer();
+
+    // Use 16-bit format to make sure it works on mobile devices
+    static constexpr TEXTURE_FORMAT DepthBufferFormat = TEX_FORMAT_D32_FLOAT;
+
+    RefCntAutoPtr<IRenderPass> m_pRenderPass;
+
+    std::unordered_map<ITextureView*, RefCntAutoPtr<IFramebuffer>> m_FramebufferCache;
+
     RefCntAutoPtr<IBuffer> m_CameraAttribsCB;
 
     BackgroundMode m_BackgroundMode = BackgroundMode::EnvironmentMap;

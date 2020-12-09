@@ -3,9 +3,9 @@
 namespace Diligent
 {
 
-Helmet::Helmet(const SampleInitInfo& InitInfo, BackgroundMode backGroundP)
+Helmet::Helmet(const SampleInitInfo& InitInfo, BackgroundMode backGroundP, RefCntAutoPtr<IRenderPass>& RenderPass)
 {
-    GLTFObject::Initialize(InitInfo);
+    GLTFObject::Initialize(InitInfo, RenderPass);
     setObjectPath("models/DamagedHelmet/DamagedHelmet.gltf");
     m_BackgroundMode = backGroundP;
 }

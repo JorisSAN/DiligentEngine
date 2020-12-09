@@ -45,8 +45,10 @@ const SamplerDesc GLTF_PBR_Renderer::CreateInfo::DefaultSampler = Sam_LinearWrap
 
 GLTF_PBR_Renderer::GLTF_PBR_Renderer(IRenderDevice*    pDevice,
                                      IDeviceContext*   pCtx,
-                                     const CreateInfo& CI) :
-    m_Settings{CI}
+                                     const CreateInfo&           CI,
+                                     RefCntAutoPtr<IRenderPass>& m_pRenderPass) :
+    m_Settings{CI},
+    m_pRenderPass{m_pRenderPass}
 {
     if (m_Settings.UseIBL)
     {
@@ -167,6 +169,9 @@ void GLTF_PBR_Renderer::PrecomputeBRDF(IRenderDevice*  pDevice,
         PSODesc.Name         = "Precompute GLTF BRDF LUT PSO";
         PSODesc.PipelineType = PIPELINE_TYPE_GRAPHICS;
 
+        GraphicsPipeline.pRenderPass  = m_pRenderPass;
+        GraphicsPipeline.SubpassIndex = 0; // This PSO will be used within the second subpass
+
         GraphicsPipeline.NumRenderTargets             = 1;
         GraphicsPipeline.RTVFormats[0]                = TexDesc.Format;
         GraphicsPipeline.PrimitiveTopology            = PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
@@ -225,6 +230,9 @@ void GLTF_PBR_Renderer::CreatePSO(IRenderDevice* pDevice)
 
     PSODesc.Name         = "Render GLTF PBR PSO";
     PSODesc.PipelineType = PIPELINE_TYPE_GRAPHICS;
+
+    GraphicsPipeline.pRenderPass  = m_pRenderPass;
+    GraphicsPipeline.SubpassIndex = 0; // This PSO will be used within the second subpass
 
     GraphicsPipeline.NumRenderTargets                     = 1;
     GraphicsPipeline.RTVFormats[0]                        = m_Settings.RTVFmt;
@@ -532,6 +540,9 @@ void GLTF_PBR_Renderer::PrecomputeCubemaps(IRenderDevice*  pDevice,
         PSODesc.Name         = "Precompute irradiance cube PSO";
         PSODesc.PipelineType = PIPELINE_TYPE_GRAPHICS;
 
+        GraphicsPipeline.pRenderPass  = m_pRenderPass;
+        GraphicsPipeline.SubpassIndex = 0; // This PSO will be used within the second subpass
+
         GraphicsPipeline.NumRenderTargets             = 1;
         GraphicsPipeline.RTVFormats[0]                = IrradianceCubeFmt;
         GraphicsPipeline.PrimitiveTopology            = PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
@@ -601,6 +612,9 @@ void GLTF_PBR_Renderer::PrecomputeCubemaps(IRenderDevice*  pDevice,
 
         PSODesc.Name         = "Prefilter environment map PSO";
         PSODesc.PipelineType = PIPELINE_TYPE_GRAPHICS;
+
+        GraphicsPipeline.pRenderPass  = m_pRenderPass;
+        GraphicsPipeline.SubpassIndex = 0; // This PSO will be used within the second subpass
 
         GraphicsPipeline.NumRenderTargets             = 1;
         GraphicsPipeline.RTVFormats[0]                = PrefilteredEnvMapFmt;
@@ -923,10 +937,10 @@ void GLTF_PBR_Renderer::Render(IDeviceContext*                                pC
     {
         IBuffer* pVBs[]                  = {GLTFModel.pVertexBuffer[0], GLTFModel.pVertexBuffer[1]};
         Uint32   Offsets[_countof(pVBs)] = {};
-        pCtx->SetVertexBuffers(0, _countof(pVBs), pVBs, Offsets, RESOURCE_STATE_TRANSITION_MODE_TRANSITION, SET_VERTEX_BUFFERS_FLAG_RESET);
+        pCtx->SetVertexBuffers(0, _countof(pVBs), pVBs, Offsets, RESOURCE_STATE_TRANSITION_MODE_VERIFY, SET_VERTEX_BUFFERS_FLAG_RESET);
         if (GLTFModel.pIndexBuffer)
         {
-            pCtx->SetIndexBuffer(GLTFModel.pIndexBuffer, 0, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+            pCtx->SetIndexBuffer(GLTFModel.pIndexBuffer, 0, RESOURCE_STATE_TRANSITION_MODE_VERIFY);
         }
     }
     else

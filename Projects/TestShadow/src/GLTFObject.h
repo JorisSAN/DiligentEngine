@@ -12,11 +12,11 @@ class GLTFObject : public Actor
 {
 public:
     GLTFObject();
-    GLTFObject(const SampleInitInfo& InitInfo);
+    GLTFObject(const SampleInitInfo& InitInfo, RefCntAutoPtr<IRenderPass>& RenderPass);
 
     ~GLTFObject();
 
-    void Initialize(const SampleInitInfo& InitInfo) override;
+    void Initialize(const SampleInitInfo& InitInfo, RefCntAutoPtr<IRenderPass>& RenderPass);
 
     void setObjectPath(const char* path);
 

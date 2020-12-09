@@ -99,7 +99,8 @@ public:
     /// Initializes the renderer
     GLTF_PBR_Renderer(IRenderDevice*    pDevice,
                       IDeviceContext*   pCtx,
-                      const CreateInfo& CI);
+                      const CreateInfo&          CI,
+                      RefCntAutoPtr<IRenderPass>& m_pRenderPass);
 
     /// Rendering information
     struct RenderInfo
@@ -216,9 +217,9 @@ public:
                 size_t                                         SRBTypeId          = 0);
 
     /// Initializes resource bindings for a given GLTF model
-    void InitializeResourceBindings(GLTF::Model& GLTFModel,
-                                    IBuffer*     pCameraAttribs,
-                                    IBuffer*     pLightAttribs);
+    void InitializeResourceBindings(GLTF::Model&               GLTFModel,
+                                    IBuffer*                   pCameraAttribs,
+                                    IBuffer*                   pLightAttribs);
 
     /// Releases resource bindings for a given GLTF model and SRB type
     void ReleaseResourceBindings(GLTF::Model& GLTFModel, size_t SRBTypeId = 0);
@@ -364,7 +365,8 @@ private:
     RefCntAutoPtr<IShaderResourceBinding> m_pPrecomputeIrradianceCubeSRB;
     RefCntAutoPtr<IShaderResourceBinding> m_pPrefilterEnvMapSRB;
 
-    RenderInfo m_RenderParams;
+    RenderInfo                 m_RenderParams;
+    RefCntAutoPtr<IRenderPass> m_pRenderPass;
 
     RefCntAutoPtr<IBuffer> m_TransformsCB;
     RefCntAutoPtr<IBuffer> m_GLTFAttribsCB;

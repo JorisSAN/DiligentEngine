@@ -63,7 +63,8 @@ EnvMap::EnvMap()
 
 }
 
-EnvMap::EnvMap(const SampleInitInfo& InitInfo, BackgroundMode BackgroundMode) :
+EnvMap::EnvMap(const SampleInitInfo& InitInfo, BackgroundMode BackgroundMode, RefCntAutoPtr<IRenderPass>& RenderPass) :
+    m_pRenderPass(RenderPass),
     m_BackgroundMode(BackgroundMode)
 {
     Initialize(InitInfo);
@@ -95,11 +96,11 @@ void EnvMap::Initialize(const SampleInitInfo& InitInfo)
     CreateUniformBuffer(m_pDevice, sizeof(LightAttribs), "Light attribs buffer", &m_VSConstants);
     CreateUniformBuffer(m_pDevice, sizeof(EnvMapRenderAttribs), "Env map render attribs buffer", &m_IndexBuffer);
     // clang-format off
-    StateTransitionDesc Barriers [] =
+    StateTransitionDesc Barriers [] = 
     {
-        {m_VertexBuffer, RESOURCE_STATE_UNKNOWN, RESOURCE_STATE_CONSTANT_BUFFER, true},
-        {m_VSConstants,  RESOURCE_STATE_UNKNOWN, RESOURCE_STATE_CONSTANT_BUFFER, true},
-        {m_IndexBuffer,  RESOURCE_STATE_UNKNOWN, RESOURCE_STATE_CONSTANT_BUFFER, true},
+        {m_VertexBuffer, RESOURCE_STATE_UNKNOWN, RESOURCE_STATE_VERTEX_BUFFER, true},
+        {m_VSConstants,  RESOURCE_STATE_UNKNOWN, RESOURCE_STATE_VERTEX_BUFFER, true},
+        {m_IndexBuffer,  RESOURCE_STATE_UNKNOWN, RESOURCE_STATE_INDEX_BUFFER, true},
         {EnvironmentMap, RESOURCE_STATE_UNKNOWN, RESOURCE_STATE_SHADER_RESOURCE, true}
     };
     // clang-format on
@@ -164,6 +165,9 @@ void EnvMap::CreatePSO()
     PSOCreateInfo.pVS = pVS;
     PSOCreateInfo.pPS = pPS;
 
+    GraphicsPipeline.pRenderPass  = m_pRenderPass;
+    GraphicsPipeline.SubpassIndex = 0; // This PSO will be used within the second subpass
+
     GraphicsPipeline.RTVFormats[0]              = m_pSwapChain->GetDesc().ColorBufferFormat;
     GraphicsPipeline.NumRenderTargets           = 1;
     GraphicsPipeline.DSVFormat                  = m_pSwapChain->GetDesc().DepthBufferFormat;
@@ -188,7 +192,6 @@ void EnvMap::CreateVertexBuffer()
             case BackgroundMode::EnvironmentMap:
                 pEnvMapSRV = m_TextureSRV;
                 break;
-
             default:
                 UNEXPECTED("Unexpected background mode");
         }
@@ -232,6 +235,12 @@ void EnvMap::RenderActor(const Camera& camera, bool IsShadowPass)
             EnvMapAttribs->AverageLogLum                  = m_RenderParams.AverageLogLum;
             EnvMapAttribs->MipLevel                       = m_EnvMapMipLevel;
         }
+        // Bind vertex and index buffers
+        Uint32   offset   = 0;
+        IBuffer* pBuffs[] = {m_VertexBuffer};
+        // Note that RESOURCE_STATE_TRANSITION_MODE_TRANSITION are not allowed inside render pass!
+        m_pImmediateContext->SetVertexBuffers(0, 1, pBuffs, &offset, RESOURCE_STATE_TRANSITION_MODE_VERIFY, SET_VERTEX_BUFFERS_FLAG_RESET);
+        m_pImmediateContext->SetIndexBuffer(m_IndexBuffer, 0, RESOURCE_STATE_TRANSITION_MODE_VERIFY);
         m_pImmediateContext->SetPipelineState(m_pPSO);
         m_pImmediateContext->CommitShaderResources(m_SRB, RESOURCE_STATE_TRANSITION_MODE_VERIFY);
         DrawAttribs drawAttribs(3, DRAW_FLAG_VERIFY_ALL);

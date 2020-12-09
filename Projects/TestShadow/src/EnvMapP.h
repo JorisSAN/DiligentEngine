@@ -11,7 +11,7 @@ class EnvMap : public Actor
 {
 public:
     EnvMap();
-    EnvMap(const SampleInitInfo& InitInfo, BackgroundMode BackgroundMode);
+    EnvMap(const SampleInitInfo& InitInfo, BackgroundMode BackgroundMode, RefCntAutoPtr<IRenderPass>& RenderPass);
 
     ~EnvMap();
 
@@ -30,6 +30,7 @@ private:
     void CreateVertexBuffer() override;
 
     GLTF_PBR_Renderer::RenderInfo m_RenderParams;
+    RefCntAutoPtr<IRenderPass>    m_pRenderPass;
 
     float  m_EnvMapMipLevel = 1.f;
     int    m_SelectedModel  = 3;
