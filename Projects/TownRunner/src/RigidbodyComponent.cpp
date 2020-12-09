@@ -5,18 +5,6 @@
 namespace Diligent
 {
 
-RigidbodyComponent::RigidbodyComponent(Actor* ownerP) :
-    Component(ownerP)
-{
-    _rigidBody = nullptr;
-}
-
-RigidbodyComponent::RigidbodyComponent(Actor* ownerP, int updateOrder) :
-    Component(ownerP, updateOrder)
-{
-    _rigidBody = nullptr;
-}
-
 RigidbodyComponent::RigidbodyComponent(Actor* ownerP, Transform transform, PhysicsWorld* _world) :
     Component(ownerP)
 {

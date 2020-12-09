@@ -9,8 +9,7 @@ namespace Diligent
 class CollisionComponent : public Component
 {
 public:
-    CollisionComponent(Actor* ownerP);
-    CollisionComponent(Actor* ownerP, int updateOrder);
+
     CollisionComponent(Actor* ownerP, CollisionShape* collisionShape);
     CollisionComponent(Actor* ownerP, CollisionShape* collisionShape, int updateOrder);
     CollisionComponent(Actor* ownerP, std::vector<CollisionShape*> collisionShape);

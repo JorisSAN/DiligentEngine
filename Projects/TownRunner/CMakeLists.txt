@@ -17,6 +17,8 @@ set(SOURCE
     src/Log.cpp
     src/Plane.cpp
     src/CollisionComponent.cpp
+    src/Raycast.cpp
+    src/MyRaycastCallback.cpp
 )
 
 set(INCLUDE
@@ -35,6 +37,8 @@ set(INCLUDE
     src/Log.h
     src/Plane.h
     src/CollisionComponent.hpp
+    src/Raycast.h
+    src/MyRaycastCallback.h
 )
 
 set(SHADERS

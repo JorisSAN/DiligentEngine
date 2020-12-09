@@ -4,19 +4,6 @@
 
 namespace Diligent
 {
-
-CollisionComponent::CollisionComponent(Actor* ownerP) :
-    Component(ownerP)
-{
-    _collider = nullptr;
-}
-
-CollisionComponent::CollisionComponent(Actor* ownerP, int updateOrder):
-    Component(ownerP, updateOrder) 
-{
-    _collider = nullptr;
-}
-
 CollisionComponent::CollisionComponent(Actor* ownerP, CollisionShape* collisionShape) :
     Component(ownerP)
 {
@@ -37,11 +24,11 @@ CollisionComponent::CollisionComponent(Actor* ownerP, std::vector<CollisionShape
     _collisionShape = collisionShape;
 }
 
-CollisionComponent::CollisionComponent(Actor* ownerP, std::vector<CollisionShape*> collisionShape, int updateOrder) :
-    Component(ownerP, updateOrder) 
-{
-    _collisionShape = collisionShape;
-}
+    CollisionComponent::CollisionComponent(Actor* ownerP, std::vector<CollisionShape*> collisionShape, int updateOrder) :
+        Component(ownerP, updateOrder) 
+    {
+        _collisionShape = collisionShape;
+    }
 
 CollisionComponent::~CollisionComponent() {}
 

@@ -8,8 +8,6 @@ namespace Diligent
 class RigidbodyComponent : public Component
 {
 public:
-    RigidbodyComponent(Actor* ownerP);
-    RigidbodyComponent(Actor* ownerP, int updateOrder);
     RigidbodyComponent(Actor* ownerP, Transform transform, PhysicsWorld* _world);
     RigidbodyComponent(Actor* ownerP, Transform transform, PhysicsWorld* _world, int updateOrder);
     RigidbodyComponent() = delete;
