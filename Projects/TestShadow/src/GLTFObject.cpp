@@ -107,7 +107,7 @@ void GLTFObject::LoadModel(const char* Path)
     }
 }
 
-void GLTFObject::Initialize(const SampleInitInfo& InitInfo,RefCntAutoPtr<IRenderPass>& RenderPass)
+void GLTFObject::Initialize(const SampleInitInfo& InitInfo, RefCntAutoPtr<IRenderPass>& RenderPass)
 {
     SampleBase::Initialize(InitInfo);
 
@@ -131,16 +131,6 @@ void GLTFObject::Initialize(const SampleInitInfo& InitInfo,RefCntAutoPtr<IRender
     CreateUniformBuffer(m_pDevice, sizeof(CameraAttribs), "Camera attribs buffer", &m_VertexBuffer);
     CreateUniformBuffer(m_pDevice, sizeof(LightAttribs), "Light attribs buffer", &m_VSConstants);
     CreateUniformBuffer(m_pDevice, sizeof(EnvMapRenderAttribs), "Env map render attribs buffer", &m_IndexBuffer);
-    // clang-format off
-    StateTransitionDesc Barriers [] = 
-    {
-        {m_VertexBuffer, RESOURCE_STATE_UNKNOWN, RESOURCE_STATE_VERTEX_BUFFER,   true},
-        {m_VSConstants,  RESOURCE_STATE_UNKNOWN, RESOURCE_STATE_VERTEX_BUFFER,   true},
-        {m_IndexBuffer,  RESOURCE_STATE_UNKNOWN, RESOURCE_STATE_INDEX_BUFFER,    true},
-        {EnvironmentMap, RESOURCE_STATE_UNKNOWN, RESOURCE_STATE_SHADER_RESOURCE, true}
-    };
-    // clang-format on
-    m_pImmediateContext->TransitionResourceStates(_countof(Barriers), Barriers);
 
     m_GLTFRenderer->PrecomputeCubemaps(m_pDevice, m_pImmediateContext, m_TextureSRV);
 

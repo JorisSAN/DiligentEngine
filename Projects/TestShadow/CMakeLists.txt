@@ -8,6 +8,7 @@ set(SOURCE
     src/Component.cpp
     src/Camera.cpp
     src/Helmet.cpp
+    src/Plane.cpp
     src/Sphere.cpp
     src/AnimPeople.cpp
     src/GLTFObject.cpp
@@ -22,6 +23,7 @@ set(INCLUDE
     src/Component.h
     src/Camera.h
     src/Helmet.h
+    src/Plane.h
     src/Sphere.h
     src/AnimPeople.h
     src/GLTFObject.h

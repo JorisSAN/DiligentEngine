@@ -34,6 +34,7 @@
 #include "GraphicsUtilities.h"
 #include "TextureUtilities.h"
 #include "Sphere.h"
+#include "Plane.h"
 #include "Helmet.h"
 #include "AnimPeople.h"
 #include "InputController.hpp"
@@ -53,6 +54,8 @@ void TestScene::GetEngineInitializationAttribs(RENDER_DEVICE_TYPE DeviceType, En
     SampleBase::GetEngineInitializationAttribs(DeviceType, EngineCI, SCDesc);
 
     EngineCI.Features.DepthClamp = DEVICE_FEATURE_STATE_OPTIONAL;
+    // We do not need the depth buffer from the swap chain in this sample
+    SCDesc.DepthBufferFormat = TEX_FORMAT_UNKNOWN;
 }
 
 void TestScene::Initialize(const SampleInitInfo& InitInfo)
@@ -71,7 +74,8 @@ void TestScene::Initialize(const SampleInitInfo& InitInfo)
 
     envMaps.reset(new EnvMap(Init, m_BackgroundMode, m_pRenderPass));
 
-    actors.emplace_back(new Helmet(Init, m_BackgroundMode, m_pRenderPass));
+    //actors.emplace_back(new Helmet(Init, m_BackgroundMode, m_pRenderPass));
+    actors.emplace_back(new Plane(Init, m_BackgroundMode, m_pRenderPass));
     //actors.emplace_back(new AnimPeople(Init, m_BackgroundMode, m_pRenderPass));
 
     lights.reset(new Light(Init, m_pRenderPass));
@@ -317,13 +321,6 @@ void TestScene::Render()
     RPBeginInfo.StateTransitionMode = RESOURCE_STATE_TRANSITION_MODE_TRANSITION;
     m_pImmediateContext->BeginRenderPass(RPBeginInfo);
 
-    m_pImmediateContext->NextSubpass();
-
-    envMaps->RenderActor(m_Camera, false);
-    lights->RenderActor(m_Camera, false);
-
-    m_pImmediateContext->EndRenderPass();
-
     for (auto actor : actors)
     {
         if (actor->getState() == Actor::ActorState::Active)
@@ -331,6 +328,13 @@ void TestScene::Render()
             actor->RenderActor(m_Camera, false);
         }
     }
+
+    m_pImmediateContext->NextSubpass();
+
+    envMaps->RenderActor(m_Camera, false);
+    lights->RenderActor(m_Camera, false);
+
+    m_pImmediateContext->EndRenderPass();
 
     if (m_pDevice->GetDeviceCaps().IsGLDevice())
     {

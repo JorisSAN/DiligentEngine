@@ -166,7 +166,7 @@ void EnvMap::CreatePSO()
     PSOCreateInfo.pPS = pPS;
 
     GraphicsPipeline.pRenderPass  = m_pRenderPass;
-    GraphicsPipeline.SubpassIndex = 0; // This PSO will be used within the second subpass
+    GraphicsPipeline.SubpassIndex = 1; // This PSO will be used within the second subpass
 
     GraphicsPipeline.RTVFormats[0]              = m_pSwapChain->GetDesc().ColorBufferFormat;
     GraphicsPipeline.NumRenderTargets           = 1;

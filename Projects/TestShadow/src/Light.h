@@ -46,7 +46,7 @@ public:
                                                 EngineCreateInfo&  Attribs,
                                                 SwapChainDesc&     SCDesc) override final;
 
-    void Initialize(const SampleInitInfo& InitInfo) override;
+    void Initialize(const SampleInitInfo& InitInfo) ;
 
     void RenderActor(const Camera& camera, bool IsShadowPass) override;
     void UpdateActor(double CurrTime, double ElapsedTime) override;
