@@ -40,13 +40,14 @@ class Light : public Actor
 {
 public:
     Light();
-    Light(const SampleInitInfo& InitInfo, RefCntAutoPtr<IRenderPass>& RenderPass);
+    Light(const SampleInitInfo& InitInfo, RefCntAutoPtr<IRenderPass>& RenderPass, IShaderSourceInputStreamFactory* pShaderSourceFactory);
 
     virtual void GetEngineInitializationAttribs(RENDER_DEVICE_TYPE DeviceType,
                                                 EngineCreateInfo&  Attribs,
                                                 SwapChainDesc&     SCDesc) override final;
 
-    void Initialize(const SampleInitInfo& InitInfo) ;
+    void Initialize(const SampleInitInfo&            InitInfo,
+                    IShaderSourceInputStreamFactory* pShaderSourceFactory);
 
     void RenderActor(const Camera& camera, bool IsShadowPass) override;
     void UpdateActor(double CurrTime, double ElapsedTime) override;

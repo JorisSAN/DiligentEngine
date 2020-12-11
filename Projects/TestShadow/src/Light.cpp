@@ -57,10 +57,10 @@ Light::Light()
 
 }
 
-Light::Light(const SampleInitInfo& InitInfo, RefCntAutoPtr<IRenderPass>& RenderPass) :
+Light::Light(const SampleInitInfo& InitInfo, RefCntAutoPtr<IRenderPass>& RenderPass, IShaderSourceInputStreamFactory* pShaderSourceFactory) :
     m_pRenderPass(RenderPass)
 {
-    Initialize(InitInfo);
+    Initialize(InitInfo, pShaderSourceFactory);
 }
 
 void Light::GetEngineInitializationAttribs(RENDER_DEVICE_TYPE DeviceType,
@@ -241,7 +241,8 @@ void Light::CreateLightsBuffer()
     m_pDevice->CreateBuffer(VertBuffDesc, nullptr, &m_pLightsBuffer);
 }
 
-void Light::Initialize(const SampleInitInfo& InitInfo)
+void Light::Initialize(const SampleInitInfo&            InitInfo,
+                       IShaderSourceInputStreamFactory* pShaderSourceFactory)
 {
     SampleBase::Initialize(InitInfo);
 
@@ -253,10 +254,6 @@ void Light::Initialize(const SampleInitInfo& InitInfo)
 
     CreateLightsBuffer();
     InitLights();
-
-    // Create a shader source stream factory to load shaders from files.
-    RefCntAutoPtr<IShaderSourceInputStreamFactory> pShaderSourceFactory;
-    m_pEngineFactory->CreateDefaultShaderSourceStreamFactory(nullptr, &pShaderSourceFactory);
 
     CreateLightVolumePSO(pShaderSourceFactory);
     CreateAmbientLightPSO(pShaderSourceFactory);

@@ -72,13 +72,17 @@ void TestScene::Initialize(const SampleInitInfo& InitInfo)
     m_Camera.SetMoveSpeed(5.f);
     m_Camera.SetSpeedUpScales(5.f, 10.f);
 
+    // Create a shader source stream factory to load shaders from files.
+    RefCntAutoPtr<IShaderSourceInputStreamFactory> pShaderSourceFactory;
+    m_pEngineFactory->CreateDefaultShaderSourceStreamFactory(nullptr, &pShaderSourceFactory);
+
     envMaps.reset(new EnvMap(Init, m_BackgroundMode, m_pRenderPass));
 
     //actors.emplace_back(new Helmet(Init, m_BackgroundMode, m_pRenderPass));
     actors.emplace_back(new Plane(Init, m_BackgroundMode, m_pRenderPass));
     //actors.emplace_back(new AnimPeople(Init, m_BackgroundMode, m_pRenderPass));
 
-    lights.reset(new Light(Init, m_pRenderPass));
+    lights.reset(new Light(Init, m_pRenderPass, pShaderSourceFactory));
 
     for (auto actor : actors)
     {

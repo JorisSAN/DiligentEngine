@@ -100,7 +100,7 @@ public:
     GLTF_PBR_Renderer(IRenderDevice*    pDevice,
                       IDeviceContext*   pCtx,
                       const CreateInfo&          CI,
-                      RefCntAutoPtr<IRenderPass>& m_pRenderPass);
+                      RefCntAutoPtr<IRenderPass>&      m_pRenderPass);
 
     /// Rendering information
     struct RenderInfo
