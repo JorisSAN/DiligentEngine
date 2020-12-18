@@ -19,6 +19,7 @@ set(SOURCE
     src/CollisionComponent.cpp
     src/Raycast.cpp
     src/MyRaycastCallback.cpp
+    src/ReactEventListener.cpp
 )
 
 set(INCLUDE
@@ -39,6 +40,7 @@ set(INCLUDE
     src/CollisionComponent.hpp
     src/Raycast.h
     src/MyRaycastCallback.h
+    src/ReactEventListener.h
 )
 
 set(SHADERS

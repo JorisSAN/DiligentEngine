@@ -1,5 +1,6 @@
 #pragma once
 #include "ReactPhysic.hpp"
+#include "Log.h"
 
 using namespace reactphysics3d;
 

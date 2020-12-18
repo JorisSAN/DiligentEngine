@@ -2,10 +2,11 @@
 
 namespace Diligent
 {
+    Log Log::m_instance = Log();
+
     Log::Log():autosave(false) 
-    {
-        
-}
+    {}
+
 	void Log::addInfo(const string message) {
         logs.push_back(message);
 	}
@@ -53,7 +54,10 @@ namespace Diligent
         file.close();
     }
 
-
+    Log& Log::Instance()
+    {
+        return m_instance;
+    }
 }
 
 
