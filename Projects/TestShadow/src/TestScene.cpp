@@ -78,8 +78,8 @@ void TestScene::Initialize(const SampleInitInfo& InitInfo)
 
     envMaps.reset(new EnvMap(Init, m_BackgroundMode, m_pRenderPass));
 
-    //actors.emplace_back(new Helmet(Init, m_BackgroundMode, m_pRenderPass));
-    actors.emplace_back(new Plane(Init, m_BackgroundMode, m_pRenderPass));
+    actors.emplace_back(new Helmet(Init, m_BackgroundMode, m_pRenderPass));
+    //actors.emplace_back(new Plane(Init, m_BackgroundMode, m_pRenderPass));
     //actors.emplace_back(new AnimPeople(Init, m_BackgroundMode, m_pRenderPass));
 
     lights.reset(new Light(Init, m_pRenderPass, pShaderSourceFactory));
