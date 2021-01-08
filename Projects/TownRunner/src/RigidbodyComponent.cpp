@@ -30,16 +30,12 @@ void RigidbodyComponent::update(double CurrTime, double ElapsedTime)
     float3                  rbPosF3 = float3(rbPosV3.x, rbPosV3.y, rbPosV3.z);
     owner.setPosition(rbPosF3);
 
-    /*
-    //Log info
-    std::string actorName = owner.GetActorName();
-    std::string message   = "Actor name : " + actorName + " ,x = " + std::to_string(rbPosV3.x) + " ,y = " + std::to_string(rbPosV3.y) + " ,z = " + std::to_string(rbPosV3.z);
-
-    log.addInfo(message);
-    //log update
-    log.Draw();
-    */
     
+    //Log info
+    //std::string actorName = owner.GetActorName();
+    //std::string message   = "Actor name : " + actorName + " ,x = " + std::to_string(rbPosV3.x) + " ,y = " + std::to_string(rbPosV3.y) + " ,z = " + std::to_string(rbPosV3.z);
+    //Diligent::Log::Instance().addInfo(message);
+    //Diligent::Log::Instance().Draw();
 }
 
 } // namespace Diligent

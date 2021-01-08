@@ -14,6 +14,7 @@ public:
     
 
     //Getter and setters
+    Ray            GetRay() { return _ray; }
     void SetRaycastPosition(Vector3 startPoint, Vector3 EndPoint);
     CollisionBody* GetRaycastInfoCollisionBody() { return _raycastInfo.body; }
     Collider* GetRaycastInfoCollider() { return _raycastInfo.collider; }

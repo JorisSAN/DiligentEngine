@@ -29,6 +29,8 @@ public:
     void AddCollisionShape(CollisionShape* collisionShape) { _collisionShape.emplace_back(collisionShape); }
     void RemoveCollisionShape(CollisionShape* collisionShape) { _collisionShape.push_back(collisionShape); }
 
+    void SetLocalTransform(reactphysics3d::Transform vector) { _collider->setLocalToBodyTransform(vector); }
+
     void SetCollider(Collider* collider) { _collider = collider; }
     Collider* GetCollider() { return _collider; }
 

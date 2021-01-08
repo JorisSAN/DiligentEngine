@@ -1,4 +1,5 @@
 #include "Plane.h"
+#include "Log.h"
 
 using namespace Diligent;
 
@@ -20,6 +21,11 @@ Plane::Plane(const SampleInitInfo& InitInfo, BackgroundMode backGroundP, std::st
 void Plane::UpdateActor(double CurrTime, double ElapsedTime)
 {
     GLTFObject::UpdateActor(CurrTime, ElapsedTime);
+
+    //Print position
+    /*string message = "Point : " + std::to_string(position.x) + " - " + std::to_string(position.y) + " - " + std::to_string(position.z);
+    Diligent::Log::Instance().addInfo(message);
+    Diligent::Log::Instance().Draw();*/
 }
 
 /*

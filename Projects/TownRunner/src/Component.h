@@ -28,6 +28,8 @@ public:
     Component(const Component&) = delete;
     Component& operator=(const Component&) = delete;
 
+    Actor* GetOwner() { return &owner;}
+
     int getUpdateOrder() const { return updateOrder; }
 
     virtual void update(double CurrTime, double ElapsedTime);
