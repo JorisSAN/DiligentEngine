@@ -27,6 +27,7 @@
 
 #pragma once
 #include <vector>
+#include <unordered_map>
 
 #include "SampleBase.hpp"
 #include "BasicMath.hpp"
@@ -34,6 +35,7 @@
 #include "Camera.h"
 #include "EnvMap.h"
 #include "EnvMapP.h"
+#include "Light.h"
 
 namespace Diligent
 {
@@ -58,11 +60,22 @@ public:
     SampleInitInfo getInitInfo() { return Init; }
 
     void removeActor(Actor* actor);
-    void addActor(Actor* actor);
 
     virtual const Char* GetSampleName() const override final { return "Scene"; }
 
 private:
+    void CreateRenderPass();
+
+    RefCntAutoPtr<IFramebuffer> CreateFramebuffer(ITextureView* pDstRenderTarget);
+    IFramebuffer*               GetCurrentFramebuffer();
+
+    // Use 16-bit format to make sure it works on mobile devices
+    static constexpr TEXTURE_FORMAT DepthBufferFormat = TEX_FORMAT_D32_FLOAT;
+
+    RefCntAutoPtr<IRenderPass> m_pRenderPass;
+
+    std::unordered_map<ITextureView*, RefCntAutoPtr<IFramebuffer>> m_FramebufferCache;
+
     RefCntAutoPtr<IBuffer> m_CameraAttribsCB;
 
     BackgroundMode m_BackgroundMode = BackgroundMode::EnvironmentMap;
@@ -74,6 +87,7 @@ private:
     std::vector<Actor*> actors;
 
     std::unique_ptr<EnvMap> envMaps;
+    std::unique_ptr<Light> lights;
 
     SampleInitInfo Init;
 };

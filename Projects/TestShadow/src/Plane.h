@@ -4,10 +4,10 @@
 namespace Diligent
 {
 
-class Helmet : public GLTFObject
+class Plane : public GLTFObject
 {
 public:
-    Helmet(const SampleInitInfo& InitInfo, BackgroundMode backGround, RefCntAutoPtr<IRenderPass>& RenderPass);
+    Plane(const SampleInitInfo& InitInfo, BackgroundMode backGround, RefCntAutoPtr<IRenderPass>& RenderPass);
 
     void UpdateActor(double CurrTime, double ElapsedTime) override;
 };

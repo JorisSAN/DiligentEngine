@@ -64,9 +64,15 @@ GLTFObject::GLTFObject()
 
 }
 
-GLTFObject::GLTFObject(const SampleInitInfo& InitInfo)
+GLTFObject::GLTFObject(const SampleInitInfo& InitInfo, RefCntAutoPtr<IRenderPass>& RenderPass)
 {
-    Initialize(InitInfo);
+    Initialize(InitInfo, RenderPass);
+}
+
+GLTFObject::~GLTFObject()
+{
+    m_GLTFRenderer.reset();
+    m_Model.reset();
 }
 
 void GLTFObject::LoadModel(const char* Path)
@@ -101,9 +107,11 @@ void GLTFObject::LoadModel(const char* Path)
     }
 }
 
-void GLTFObject::Initialize(const SampleInitInfo& InitInfo)
+void GLTFObject::Initialize(const SampleInitInfo& InitInfo, RefCntAutoPtr<IRenderPass>& RenderPass)
 {
     SampleBase::Initialize(InitInfo);
+
+    m_pRenderPass = RenderPass;
 
     RefCntAutoPtr<ITexture> EnvironmentMap;
     CreateTextureFromFile("textures/papermill.ktx", TextureLoadInfo{"Environment map"}, m_pDevice, &EnvironmentMap);
@@ -118,21 +126,11 @@ void GLTFObject::Initialize(const SampleInitInfo& InitInfo)
     RendererCI.AllowDebugView = true;
     RendererCI.UseIBL         = true;
     RendererCI.FrontCCW       = true;
-    m_GLTFRenderer.reset(new GLTF_PBR_Renderer(m_pDevice, m_pImmediateContext, RendererCI));
+    m_GLTFRenderer.reset(new GLTF_PBR_Renderer(m_pDevice, m_pImmediateContext, RendererCI, m_pRenderPass));
 
     CreateUniformBuffer(m_pDevice, sizeof(CameraAttribs), "Camera attribs buffer", &m_VertexBuffer);
     CreateUniformBuffer(m_pDevice, sizeof(LightAttribs), "Light attribs buffer", &m_VSConstants);
     CreateUniformBuffer(m_pDevice, sizeof(EnvMapRenderAttribs), "Env map render attribs buffer", &m_IndexBuffer);
-    // clang-format off
-    StateTransitionDesc Barriers [] =
-    {
-        {m_VertexBuffer, RESOURCE_STATE_UNKNOWN, RESOURCE_STATE_CONSTANT_BUFFER, true},
-        {m_VSConstants,  RESOURCE_STATE_UNKNOWN, RESOURCE_STATE_CONSTANT_BUFFER, true},
-        {m_IndexBuffer,  RESOURCE_STATE_UNKNOWN, RESOURCE_STATE_CONSTANT_BUFFER, true},
-        {EnvironmentMap, RESOURCE_STATE_UNKNOWN, RESOURCE_STATE_SHADER_RESOURCE, true}
-    };
-    // clang-format on
-    m_pImmediateContext->TransitionResourceStates(_countof(Barriers), Barriers);
 
     m_GLTFRenderer->PrecomputeCubemaps(m_pDevice, m_pImmediateContext, m_TextureSRV);
 
