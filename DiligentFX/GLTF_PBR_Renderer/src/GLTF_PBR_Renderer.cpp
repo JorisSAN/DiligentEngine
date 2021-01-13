@@ -239,7 +239,8 @@ void GLTF_PBR_Renderer::CreatePSO(IRenderDevice* pDevice)
     GraphicsPipeline.DSVFormat                            = m_Settings.DSVFmt;
     GraphicsPipeline.PrimitiveTopology                    = PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     GraphicsPipeline.RasterizerDesc.CullMode              = CULL_MODE_BACK;
-    GraphicsPipeline.RasterizerDesc.FrontCounterClockwise = m_Settings.FrontCCW;
+    GraphicsPipeline.RasterizerDesc.FrontCounterClockwise       = m_Settings.FrontCCW;
+    GraphicsPipeline.DepthStencilDesc.DepthEnable         = True;
 
     ShaderCreateInfo ShaderCI;
     ShaderCI.SourceLanguage             = SHADER_SOURCE_LANGUAGE_HLSL;
