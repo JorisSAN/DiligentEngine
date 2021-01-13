@@ -2,9 +2,8 @@
 #include "Log.h"
 #include <reactphysics3d/engine/EventListener.h>
 
-using namespace reactphysics3d;
 
-namespace Diligent
+namespace reactphysics3d
 {
 
 class ReactEventListener : public EventListener

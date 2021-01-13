@@ -12,8 +12,6 @@ public:
 
     CollisionComponent(Actor* ownerP, CollisionShape* collisionShape);
     CollisionComponent(Actor* ownerP, CollisionShape* collisionShape, int updateOrder);
-    CollisionComponent(Actor* ownerP, std::vector<CollisionShape*> collisionShape);
-    CollisionComponent(Actor* ownerP, std::vector<CollisionShape*> collisionShape, int updateOrder);
     CollisionComponent() = delete;
     virtual ~CollisionComponent();
     CollisionComponent(const CollisionComponent&) = delete;
@@ -24,10 +22,8 @@ public:
     TypeID GetType() const override { return TCollisionComponent; }
 
     //Getter / Setters
-    void SetCollisionShape(std::vector<CollisionShape*> collisionShape) { _collisionShape = collisionShape; }
-    std::vector<CollisionShape*> GetCollisionShape() { return _collisionShape; }
-    void AddCollisionShape(CollisionShape* collisionShape) { _collisionShape.emplace_back(collisionShape); }
-    void RemoveCollisionShape(CollisionShape* collisionShape) { _collisionShape.push_back(collisionShape); }
+    CollisionShape* GetCollisionShape() { return _collisionShape; }
+    void SetCollisionShape(CollisionShape* collisionShape) { _collisionShape =collisionShape; }
 
     void SetLocalTransform(reactphysics3d::Transform vector) { _collider->setLocalToBodyTransform(vector); }
 
@@ -35,7 +31,7 @@ public:
     Collider* GetCollider() { return _collider; }
 
 private:
-    std::vector<CollisionShape*> _collisionShape;
+    CollisionShape* _collisionShape;
     Collider*                    _collider;
 };
 

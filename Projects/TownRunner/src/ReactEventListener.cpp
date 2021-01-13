@@ -2,7 +2,7 @@
 #include "RigidbodyComponent.hpp"
 #include "Actor.h"
 
-namespace Diligent
+namespace reactphysics3d
 {
 void ReactEventListener::onTrigger(const OverlapCallback::CallbackData& callbackData)
 {

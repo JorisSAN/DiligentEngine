@@ -5,13 +5,13 @@
 namespace Diligent
 {
 
-RigidbodyComponent::RigidbodyComponent(Actor* ownerP, Transform transform, PhysicsWorld* _world) :
+RigidbodyComponent::RigidbodyComponent(Diligent::Actor* ownerP, Transform transform, PhysicsWorld* _world) :
     Component(ownerP)
 {
     _rigidBody = _world->createRigidBody(transform);
 }
 
-RigidbodyComponent::RigidbodyComponent(Actor* ownerP, Transform transform, PhysicsWorld* _world, int updateOrder) :
+RigidbodyComponent::RigidbodyComponent(Diligent::Actor* ownerP, Transform transform, PhysicsWorld* _world, int updateOrder) :
     Component(ownerP, updateOrder)
 {
     _rigidBody = _world->createRigidBody(transform);
@@ -27,7 +27,7 @@ void RigidbodyComponent::update(double CurrTime, double ElapsedTime)
 {
     //Update position
     reactphysics3d::Vector3 rbPosV3 = _rigidBody->getTransform().getPosition();
-    float3                  rbPosF3 = float3(rbPosV3.x, rbPosV3.y, rbPosV3.z);
+    float3 rbPosF3 = float3(rbPosV3.x, rbPosV3.y, rbPosV3.z);
     owner.setPosition(rbPosF3);
 
     
