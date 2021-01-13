@@ -363,7 +363,6 @@ void TestScene::Update(double CurrTime, double ElapsedTime)
     {
             actor->Update(CurrTime, ElapsedTime);
     }
-
     lights->UpdateActor(CurrTime, ElapsedTime);
 
     //if (m_InputController.IsKeyDown(InputKeys::MoveBackward))

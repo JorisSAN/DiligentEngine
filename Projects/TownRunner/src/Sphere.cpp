@@ -14,7 +14,7 @@ void Sphere::UpdateActor(double CurrTime, double ElapsedTime)
 {
     GLTFObject::UpdateActor(CurrTime, ElapsedTime);
 
-    setRotation(Quaternion::RotationFromAxisAngle(float3(0, 1, 0), static_cast<float>(CurrTime) * 1.0f));
+    //setRotation(Quaternion::RotationFromAxisAngle(float3(0, 1, 0), static_cast<float>(CurrTime) * 1.0f));
 }
 
 } // namespace Diligent
