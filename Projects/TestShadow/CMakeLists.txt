@@ -8,13 +8,10 @@ set(SOURCE
     src/Component.cpp
     src/Camera.cpp
     src/Helmet.cpp
-    src/Plane.cpp
     src/Sphere.cpp
     src/AnimPeople.cpp
     src/GLTFObject.cpp
     src/EnvMapP.cpp
-    src/Light.cpp
-    src/TexturedCube.cpp
 )
 
 set(INCLUDE
@@ -23,14 +20,11 @@ set(INCLUDE
     src/Component.h
     src/Camera.h
     src/Helmet.h
-    src/Plane.h
     src/Sphere.h
     src/AnimPeople.h
     src/GLTFObject.h
     src/EnvMap.h
     src/EnvMapP.h
-    src/Light.h
-    src/TexturedCube.hpp
 )
 
 set(SHADERS
@@ -40,14 +34,6 @@ set(SHADERS
     assets/shaders/env_map.psh
     assets/shaders/MeshVS.vsh
     assets/shaders/MeshPS.psh
-    assets/light_volume.vsh
-    assets/light_volume_glsl.psh
-    assets/light_volume_hlsl.psh
-    assets/ambient_light.vsh
-    assets/ambient_light_glsl.psh
-    assets/ambient_light_hlsl.psh
-    assets/cube.vsh
-    assets/cube.psh
 )
 
 set(EXTERNAL_SHADERS
@@ -74,7 +60,6 @@ set(MODELS ${BOOM_BOX_MODEL} ${CESIUM_MAN_MODEL} ${DAMAGED_HELMENT_MODEL}
 set(TEXTURES assets/textures/papermill.ktx)
 
 set(ASSETS
-    assets/DGLogo.png
     ${MODELS}
     ${TEXTURES}
 )

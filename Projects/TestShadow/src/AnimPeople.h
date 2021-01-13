@@ -7,7 +7,7 @@ namespace Diligent
 class AnimPeople : public GLTFObject
 {
 public:
-    AnimPeople(const SampleInitInfo& InitInfo, BackgroundMode backGround, RefCntAutoPtr<IRenderPass>& RenderPass);
+    AnimPeople(const SampleInitInfo& InitInfo, BackgroundMode backGround);
 
     void UpdateActor(double CurrTime, double ElapsedTime) override;
 };

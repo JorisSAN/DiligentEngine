@@ -12,11 +12,9 @@ class GLTFObject : public Actor
 {
 public:
     GLTFObject();
-    GLTFObject(const SampleInitInfo& InitInfo, RefCntAutoPtr<IRenderPass>& RenderPass);
+    GLTFObject(const SampleInitInfo& InitInfo);
 
-    ~GLTFObject();
-
-    void Initialize(const SampleInitInfo& InitInfo, RefCntAutoPtr<IRenderPass>& RenderPass);
+    void Initialize(const SampleInitInfo& InitInfo) override;
 
     void setObjectPath(const char* path);
 
@@ -27,8 +25,7 @@ public:
 protected:
     const char* path;
 
-    BackgroundMode             m_BackgroundMode = BackgroundMode::EnvironmentMap;
-    RefCntAutoPtr<IRenderPass> m_pRenderPass;
+    BackgroundMode m_BackgroundMode = BackgroundMode::EnvironmentMap;
 
 private:
     void LoadModel(const char* Path);
@@ -38,6 +35,8 @@ private:
     float3 m_LightDirection;
     float4 m_LightColor     = float4(1, 1, 1, 1);
     float  m_LightIntensity = 3.f;
+    float  m_EnvMapMipLevel = 1.f;
+    int    m_SelectedModel  = 3;
 
     bool               m_PlayAnimation  = false;
     int                m_AnimationIndex = 0;

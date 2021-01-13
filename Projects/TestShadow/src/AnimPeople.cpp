@@ -3,9 +3,9 @@
 namespace Diligent
 {
 
-AnimPeople::AnimPeople(const SampleInitInfo& InitInfo, BackgroundMode backGroundP, RefCntAutoPtr<IRenderPass>& RenderPass)
+AnimPeople::AnimPeople(const SampleInitInfo& InitInfo, BackgroundMode backGroundP)
 {
-    GLTFObject::Initialize(InitInfo, RenderPass);
+    GLTFObject::Initialize(InitInfo);
     setObjectPath("models/CesiumMan/CesiumMan.gltf");
     m_BackgroundMode = backGroundP;
 }

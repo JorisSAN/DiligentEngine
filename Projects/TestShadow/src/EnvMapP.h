@@ -11,9 +11,7 @@ class EnvMap : public Actor
 {
 public:
     EnvMap();
-    EnvMap(const SampleInitInfo& InitInfo, BackgroundMode BackgroundMode, RefCntAutoPtr<IRenderPass>& RenderPass);
-
-    ~EnvMap();
+    EnvMap(const SampleInitInfo& InitInfo, BackgroundMode BackgroundMode);
 
     void Initialize(const SampleInitInfo& InitInfo) override;
 
@@ -30,10 +28,11 @@ private:
     void CreateVertexBuffer() override;
 
     GLTF_PBR_Renderer::RenderInfo m_RenderParams;
-    RefCntAutoPtr<IRenderPass>    m_pRenderPass;
 
     float  m_EnvMapMipLevel = 1.f;
     int    m_SelectedModel  = 3;
+
+    std::unique_ptr<GLTF_PBR_Renderer>    m_GLTFRenderer;
 };
 
 } // namespace Diligent
