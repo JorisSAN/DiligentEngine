@@ -66,6 +66,7 @@ public:
     void setScale(float scaleP) { scale = scaleP; }
     void setRotation(Quaternion rotationP) { rotation = rotationP; }
     void setPosition(float3 positionP) { position = positionP; }
+    Actor* GetActor() { return this; }
 
     RefCntAutoPtr<IShaderResourceBinding> getm_SRB() { return m_SRB; }
     RefCntAutoPtr<IPipelineState>         getm_pPSO() { return m_pPSO; }

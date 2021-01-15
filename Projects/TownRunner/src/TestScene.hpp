@@ -84,7 +84,6 @@ private:
     //React physic 3d
     ReactPhysic* _reactPhysic;
 
-
     //Functions
     void ActorCreation();
     RigidbodyComponent* RigidbodyComponentCreation(Actor* actor, reactphysics3d::Transform transform, BodyType type = BodyType::DYNAMIC);

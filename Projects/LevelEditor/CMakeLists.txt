@@ -10,6 +10,13 @@ set(SOURCE
     src/Log.cpp
     src/Plane.cpp
     src/TexturedCube.cpp
+    src/ReactPhysic.cpp
+    src/RigidbodyComponent.cpp
+
+    src/Camera.cpp
+    src/CollisionComponent.cpp
+    src/Raycast.cpp
+    src/MyRaycastCallback.cpp
 )
 
 set(INCLUDE
@@ -20,6 +27,12 @@ set(INCLUDE
     src/Log.h
     src/Plane.h
     src/TexturedCube.hpp
+    src/ReactPhysic.hpp
+    src/RigidbodyComponent.hpp
+    src/CollisionComponent.hpp
+    src/Raycast.h
+    src/MyRaycastCallback.h
+    src/Camera.h
 )
 
 set(SHADERS

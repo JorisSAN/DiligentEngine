@@ -30,9 +30,12 @@
 
 #include "SampleBase.hpp"
 #include "BasicMath.hpp"
-//#include "Camera.h"
+#include "Camera.h"
 #include "Actor.h"
 #include "Log.h"
+#include "ReactPhysic.hpp"
+#include "RigidbodyComponent.hpp"
+#include "MyRaycastCallback.h"
 
 namespace Diligent
 {
@@ -40,7 +43,13 @@ namespace Diligent
 class TestScene final : public SampleBase
 {
 public:
+    static TestScene& instance()
+    {
+        static TestScene inst;
+        return inst;
+    }
     virtual void GetEngineInitializationAttribs(RENDER_DEVICE_TYPE DeviceType, EngineCreateInfo& EngineCI, SwapChainDesc& SCDesc) override final;
+    SampleInitInfo getInitInfo() { return Init; }
 
     virtual void Initialize(const SampleInitInfo& InitInfo) override final;
     virtual void Render() override final;
@@ -74,11 +83,15 @@ public:
     std::vector<float3> actorsPos;
     std::vector<Quaternion> actorsRot;
     std::vector<float> actorsSca;
+    MouseState              m_LastMouseStateUI;
     MouseState              m_LastMouseState;
-//    Camera                  m_Camera;
+    Camera                  m_Camera;
     Log log;
+    SampleInitInfo Init;
 
-
+    ReactPhysic* _reactPhysic;
+    RigidbodyComponent* RigidbodyComponentCreation(Actor* actor, reactphysics3d::Transform transform, BodyType type = BodyType::DYNAMIC);
+    void CollisionComponentCreation(Actor* actor, RigidbodyComponent* rb, CollisionShape* shape, reactphysics3d::Transform transform);
 };
 
 } // namespace Diligent

@@ -40,7 +40,9 @@
 #include "Cube.h"
 #include "Plane.h"
 #include "imgui.h"
-
+#include "CollisionComponent.hpp"
+#include "MyRaycastCallback.h"
+#include "Raycast.h"
 
 namespace ImGui
 {
@@ -63,8 +65,14 @@ bool ListBox(const char* label, int* currIndex, std::vector<std::string>& values
 
 namespace Diligent
 {
+SampleBase* CreateSample()
+{
+    return new TestScene();
+}
+
 struct LineSegement
 {
+
     float3 start;
     float3 end;
 };
@@ -76,19 +84,34 @@ bool TestLineIntersection(Actor* actor, LineSegement lineseg) {
 }
 bool TestScene::Unproject(float windowsX, float windowsY, float windowsZ, const float4x4& modelView, float4x4& projection, float3& worldCoordinate)
 {
+    std::string message;
 
-    float4x4 m = (projection * modelView).Inverse();
+    //message= "model view:" + std::to_string(modelView.m00) + " " + std::to_string(projection.m00);
+    //log.addInfo(message);
+    float4x4 m (projection);
+    m.Inverse();
+    /*
+    message = "model view:";
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++)
+        {
+            message += std::to_string(projection[i][j]);
+            
+        }   
+        message += "\n";
+    }
+    log.addInfo(message);
+    */
+    
     float4   in;
     float winHeight = (float)m_pSwapChain->GetDesc().Height;
     float    winWidth = (float)m_pSwapChain->GetDesc().Width;
-
     in[0] = windowsX / winWidth * 2.0f - 1.0f;
     in[1] = windowsY / winHeight * 2.0f - 1.0f;
     in[2] = 2.0f * windowsZ - 1.0f;
     in[3] = 1.0f;
-
     //to world coordinate
-    float4 out(m * in);
+    float4 out= (m * in);
     if (out[3] == 0.0)
     {
         worldCoordinate.x = 0;
@@ -96,30 +119,22 @@ bool TestScene::Unproject(float windowsX, float windowsY, float windowsZ, const 
         worldCoordinate.z = 0;
         return false;
     }
+   // message = "in:" + std::to_string(in[0]) + " " + std::to_string(in[1]) + " " + std::to_string(in[2]) + " ";
+    //log.addInfo(message);
+
     worldCoordinate.x = out[0] * out[3];
     worldCoordinate.y = out[1] * out[3];
     worldCoordinate.z = out[2] * out[3];
+    //message = "out :" + std::to_string(m.m00) + " " + std::to_string(out[1]) + " " + std::to_string(out[2]) + " ";
+    //log.addInfo(message);
+
+  //message = "lign  :" + std::to_string(worldCoordinate.x) + " " + std::to_string(worldCoordinate.y) + " " + std::to_string(worldCoordinate.z) + " ";
+    //log.addInfo(message);
 
     return true;
 }
 
-std::vector<Actor*> TestScene::Pick(float x, float y)
-{
-    LineSegement        lineSeg;
-    std::vector<Actor*> intersectedObjs;
-    Unproject(x, y, 0.0f, m_CubeWorldMatrix, m_CameraViewProjMatrix, lineSeg.start);
-    Unproject(x, y, 1.0f, m_CubeWorldMatrix, m_CameraViewProjMatrix, lineSeg.end);
 
-    for (auto actor : actors) {
-        if (TestLineIntersection(actor, lineSeg))
-        {
-            intersectedObjs.push_back(actor);
-        }
-    }
-
-    //sort them from distance
-    return intersectedObjs;
-}
 float3 ToEulerAngles(Quaternion quat)
 {
     float4 q = quat.q;
@@ -182,10 +197,6 @@ Quaternion ToQuaternion(float3 vec3) // yaw (Z), pitch (Y), roll (X)
     return q;
 }
 
-SampleBase* CreateSample()
-{
-    return new TestScene();
-}
 
 void TestScene::GetEngineInitializationAttribs(RENDER_DEVICE_TYPE DeviceType, EngineCreateInfo& EngineCI, SwapChainDesc& SCDesc)
 {
@@ -199,6 +210,11 @@ void TestScene::Initialize(const SampleInitInfo& InitInfo)
 
     varInitInfo = InitInfo;
     SampleBase::Initialize(varInitInfo);
+
+    //Initialize react physic 3d
+    _reactPhysic = new ReactPhysic();
+
+
     ReadFile("TestLevel.txt", varInitInfo);
     int i = 0;
     for (auto actor : actors)
@@ -217,6 +233,12 @@ void TestScene::Initialize(const SampleInitInfo& InitInfo)
         }
         i++;
     }
+
+    m_Camera.SetPos(float3(5.0f, 0.0f, 0.0f));
+    m_Camera.SetRotation(PI_F / 2.f, 0, 0);
+    m_Camera.SetRotationSpeed(0.005f);
+    m_Camera.SetMoveSpeed(5.f);
+    m_Camera.SetSpeedUpScales(5.f, 10.f);
 
     CreateShadowMapVisPSO();
 }
@@ -271,11 +293,40 @@ void TestScene::ReadFile(std::string fileName, const SampleInitInfo& InitInfo)
     //    transforms.push_back(float3(4, 0, 0));
 }
 
+RigidbodyComponent* TestScene::RigidbodyComponentCreation(Actor* actor, reactphysics3d::Transform transform, BodyType type)
+{
+    RigidbodyComponent* rigidbody = new RigidbodyComponent(actor->GetActor(), transform, _reactPhysic->GetPhysicWorld());
+    rigidbody->GetRigidBody()->setType(type);
+    actor->addComponent(rigidbody);
+    return rigidbody;
+}
+
+void TestScene::CollisionComponentCreation(Actor* actor, RigidbodyComponent* rb, CollisionShape* shape, reactphysics3d::Transform transform)
+{
+    CollisionComponent* colisionComponent = new CollisionComponent(actor->GetActor(), shape);
+    colisionComponent->AddCollisionShape(shape);
+    colisionComponent->SetCollider(rb->GetRigidBody()->addCollider(shape, transform));
+    actor->addComponent(colisionComponent);
+}
+
 void TestScene::CreateAdaptedActor(std::string actorClass, const SampleInitInfo& InitInfo)
 {
     if (actorClass == "Cube")
     {
-        actors.emplace_back(new Cube(InitInfo));
+        Cube* cube = new Cube(InitInfo);
+        float3 vec (0,0,0);
+        reactphysics3d::Transform cubeTransform(reactphysics3d::Vector3(vec.x, vec.y, vec.z), reactphysics3d::Quaternion::identity());
+
+        //rigid body
+        RigidbodyComponent* rbCube = RigidbodyComponentCreation(cube, cubeTransform,BodyType::STATIC);
+
+
+        // collision
+        BoxShape* boxShape = _reactPhysic->GetPhysicCommon()->createBoxShape(reactphysics3d::Vector3(1, 1, 1));
+        CollisionComponentCreation(cube, rbCube, boxShape, cubeTransform);
+        actors.emplace_back(cube);
+
+
     }
     if (actorClass == "Plane")
     {
@@ -484,15 +535,15 @@ void TestScene::UpdateUI(bool showMidUI)
     ImGui::End();
     
     MouseState mouseState = m_InputController.GetMouseState();
-    if (mouseState.ButtonFlags & MouseState::BUTTON_FLAG_RIGHT)
+    if (mouseState.ButtonFlags == mouseState.BUTTON_FLAG_RIGHT)
     {
-        m_LastMouseState = mouseState;
+        m_LastMouseStateUI = mouseState;
     }
-    if (m_LastMouseState.ButtonFlags)
+    if (m_LastMouseStateUI.ButtonFlags ==m_LastMouseStateUI.BUTTON_FLAG_RIGHT)
     {
         
         //remplacer ImVec2 par l'emplacement de la souris
-        ImGui::SetNextWindowPos(ImVec2(m_LastMouseState.PosX, m_LastMouseState.PosY));
+        ImGui::SetNextWindowPos(ImVec2(m_LastMouseStateUI.PosX, m_LastMouseStateUI.PosY));
         if (ImGui::Begin("Object Editor", nullptr))
         {
 
@@ -598,6 +649,76 @@ void TestScene::SaveLevel(std::string fileName)
 void TestScene::Update(double CurrTime, double ElapsedTime)
 {
     SampleBase::Update(CurrTime, ElapsedTime);
+
+    //React physic
+    _reactPhysic->Update();
+    
+    m_Camera.Update(m_InputController, static_cast<float>(ElapsedTime));
+    MouseState mouseState = m_InputController.GetMouseState();
+    /*
+    if (mouseState.ButtonFlags == MouseState::BUTTON_FLAG_RIGHT)
+    {
+        std::string message = "Right Click : ";
+        log.addInfo(message);
+    }
+ */
+    if (mouseState.ButtonFlags == MouseState::BUTTON_FLAG_RIGHT && (m_LastMouseState.ButtonFlags != mouseState.ButtonFlags))
+    {
+        // get the mouse position in the screen
+        int mouse_x= m_LastMouseState.PosX;
+        int mouse_y= m_LastMouseState.PosY;
+        LineSegement lineSeg;
+        std::string  message = "Good Click : ";
+        log.addInfo(message);
+
+        
+        Unproject(mouse_x, mouse_y, 0.0f, m_CubeWorldMatrix, m_CameraViewProjMatrix, lineSeg.start);
+        Unproject(mouse_x, mouse_y, 1.0f, m_CubeWorldMatrix, m_CameraViewProjMatrix, lineSeg.end);
+        message = "lign start :" + std::to_string(lineSeg.start.x) + " " + std::to_string(lineSeg.start.y) + " " + std::to_string(lineSeg.start.z) + " ";
+        
+        reactphysics3d::Vector3 vec(static_cast<float>(lineSeg.start.x), static_cast<float>(lineSeg.start.y), static_cast<decimal>(lineSeg.start.z));
+        reactphysics3d::Vector3 vec2(lineSeg.end.x,lineSeg.end.y, lineSeg.end.z);
+        float4                  fuck(1, 2, 3, 4);
+        message = "lign start :" + std::to_string(lineSeg.start.x) + " " + std::to_string(lineSeg.start.y) + " " + std::to_string(lineSeg.start.z) + " ";
+        log.addInfo(message);
+
+        message = "lign end :" + std::to_string(lineSeg.end.x) + " " + std::to_string(lineSeg.end.y) + " " + std::to_string(lineSeg.end.z) + " ";
+        log.addInfo(message);
+        
+        //transform it to a start and end position in the real world from the camera projection 
+        MyRaycastCallback testasr;
+
+        Raycast interRay(vec,vec2);
+        Raycast testRay(reactphysics3d::Vector3(0, 10, 0), reactphysics3d::Vector3(0, -10, 0));
+        log.addInfo(testasr.messs);
+        testRay.UseRaycast(_reactPhysic->GetPhysicWorld(), testasr);
+        _reactPhysic->GetPhysicWorld()->raycast(testRay.GetRay(), &testasr);
+        log.addInfo(testasr.messs);
+
+        interRay.UseRaycast(_reactPhysic->GetPhysicWorld(),testasr);
+
+        log.addInfo(testasr.messs);
+        /*
+        if (callback.hit) {
+
+            reactphysics3d::Vector3 positionHits=callback.hitpoints->at(0);
+            if (positionHits.x == actors[0]->getPosition().x && positionHits.y == actors[0]->getPosition().y && positionHits.z == actors[0]->getPosition().z) {
+
+                message = "Worked:";
+                log.addInfo(message);
+            }
+        }
+
+        message = "test:" + callback.hit;
+        */
+        log.addInfo(message);
+        // if the ray touch any objects get a list of objects 
+        // check which one it touches first
+        // set it to the object selected
+        Raycast ray();
+    }
+    m_LastMouseState = mouseState;
+
     UpdateUI(true);
     log.Draw();
     // Animate the cube
