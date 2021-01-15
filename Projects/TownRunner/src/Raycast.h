@@ -11,8 +11,6 @@ public:
     Raycast(Vector3 startPoint, Vector3 EndPoint);
     ~Raycast();
 
-    
-
     //Getter and setters
     Ray            GetRay() { return _ray; }
     void SetRaycastPosition(Vector3 startPoint, Vector3 EndPoint);
