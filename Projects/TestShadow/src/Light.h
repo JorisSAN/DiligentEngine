@@ -54,6 +54,8 @@ public:
 
     void CreateSRB(RefCntAutoPtr<ITexture> pColorBuffer, RefCntAutoPtr<ITexture> pDepthZBuffer);
 
+    RefCntAutoPtr<IBuffer> getShaderConstantsCB() { return m_pShaderConstantsCB; }
+
 private:
     void CreateLightVolumePSO(IShaderSourceInputStreamFactory* pShaderSourceFactory);
     void CreateAmbientLightPSO(IShaderSourceInputStreamFactory* pShaderSourceFactory);
@@ -89,7 +91,7 @@ private:
     float4x4 m_CameraViewProjInvMatrix;
 
     int  m_LightsCount      = 100;
-    bool m_ShowLightVolumes = true;
+    bool m_ShowLightVolumes = false;
     bool m_AnimateLights    = true;
 
     constexpr static int GridDim = 7;

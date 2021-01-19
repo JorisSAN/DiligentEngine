@@ -46,9 +46,9 @@ const SamplerDesc GLTF_PBR_Renderer::CreateInfo::DefaultSampler = Sam_LinearWrap
 GLTF_PBR_Renderer::GLTF_PBR_Renderer(IRenderDevice*    pDevice,
                                      IDeviceContext*   pCtx,
                                      const CreateInfo&           CI,
-                                     RefCntAutoPtr<IRenderPass>& m_pRenderPass) :
+                                     RefCntAutoPtr<IRenderPass>& pRenderPass) :
     m_Settings{CI},
-    m_pRenderPass{m_pRenderPass}
+    m_pRenderPass{pRenderPass}
 {
     if (m_Settings.UseIBL)
     {

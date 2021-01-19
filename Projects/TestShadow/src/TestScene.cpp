@@ -66,8 +66,8 @@ void TestScene::Initialize(const SampleInitInfo& InitInfo)
 
     CreateRenderPass();
 
-    m_Camera.SetPos(float3(-5.0f, 0.0f, 0.0f));
-    m_Camera.SetRotation(PI_F / 2.f, 0, +PI_F);
+    m_Camera.SetPos(float3(5.0f, 0.0f, 0.0f));
+    m_Camera.SetRotation(PI_F / 2.f, 0, 0);
     m_Camera.SetRotationSpeed(0.005f);
     m_Camera.SetMoveSpeed(5.f);
     m_Camera.SetSpeedUpScales(5.f, 10.f);
@@ -77,12 +77,11 @@ void TestScene::Initialize(const SampleInitInfo& InitInfo)
     m_pEngineFactory->CreateDefaultShaderSourceStreamFactory(nullptr, &pShaderSourceFactory);
 
     envMaps.reset(new EnvMap(Init, m_BackgroundMode, m_pRenderPass));
+    lights.reset(new Light(Init, m_pRenderPass, pShaderSourceFactory));
 
     actors.emplace_back(new Helmet(Init, m_BackgroundMode, m_pRenderPass));
-    //actors.emplace_back(new Plane(Init, m_BackgroundMode, m_pRenderPass));
+    actors.emplace_back(new Plane(Init, m_BackgroundMode, m_pRenderPass));
     //actors.emplace_back(new AnimPeople(Init, m_BackgroundMode, m_pRenderPass));
-
-    lights.reset(new Light(Init, m_pRenderPass, pShaderSourceFactory));
 
     for (auto actor : actors)
     {
@@ -336,6 +335,7 @@ void TestScene::Render()
     m_pImmediateContext->NextSubpass();
 
     envMaps->RenderActor(m_Camera, false);
+
     lights->RenderActor(m_Camera, false);
 
     m_pImmediateContext->EndRenderPass();
@@ -363,6 +363,7 @@ void TestScene::Update(double CurrTime, double ElapsedTime)
     {
             actor->Update(CurrTime, ElapsedTime);
     }
+
     lights->UpdateActor(CurrTime, ElapsedTime);
 
     //if (m_InputController.IsKeyDown(InputKeys::MoveBackward))
