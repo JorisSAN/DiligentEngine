@@ -77,7 +77,24 @@ void TestScene::Initialize(const SampleInitInfo& InitInfo)
     m_pEngineFactory->CreateDefaultShaderSourceStreamFactory(nullptr, &pShaderSourceFactory);
 
     envMaps.reset(new EnvMap(Init, m_BackgroundMode, m_pRenderPass));
-    lights.reset(new Light(Init, m_pRenderPass, pShaderSourceFactory));
+
+    ambientlight.reset(new AmbientLight(Init, m_pRenderPass, pShaderSourceFactory));
+
+    PointLight* light1 = new PointLight(Init, m_pRenderPass, pShaderSourceFactory);
+    light1->setLocation(float3(-1, 0, 0));
+    light1->setColor(float3(1, 0, 0));
+
+    PointLight* light2 = new PointLight(Init, m_pRenderPass, pShaderSourceFactory);
+    light2->setLocation(float3(0, 0, 0));
+    light2->setColor(float3(0, 1, 0));
+
+    PointLight *light3 = new PointLight(Init, m_pRenderPass, pShaderSourceFactory);
+    light3->setLocation(float3(1, 0, 0));
+    light3->setColor(float3(0, 0, 1));
+
+    lights.emplace_back(light1);
+    lights.emplace_back(light2);
+    lights.emplace_back(light3);
 
     actors.emplace_back(new Helmet(Init, m_BackgroundMode, m_pRenderPass));
     actors.emplace_back(new Plane(Init, m_BackgroundMode, m_pRenderPass));
@@ -264,7 +281,8 @@ RefCntAutoPtr<IFramebuffer> TestScene::CreateFramebuffer(ITextureView* pDstRende
     m_pDevice->CreateFramebuffer(FBDesc, &pFramebuffer);
     VERIFY_EXPR(pFramebuffer != nullptr);
 
-    lights->CreateSRB(pColorBuffer, pDepthZBuffer);
+    ColorBuffer = pColorBuffer;
+    DepthZBuffer = pDepthZBuffer;
 
     return pFramebuffer;
 }
@@ -292,6 +310,12 @@ IFramebuffer* TestScene::GetCurrentFramebuffer()
 void TestScene::Render()
 {
     auto* pFramebuffer = GetCurrentFramebuffer();
+
+    ambientlight->CreateSRB(ColorBuffer, DepthZBuffer);
+    for (auto light : lights)
+    {
+        light->CreateSRB(ColorBuffer, DepthZBuffer);
+    }
 
     BeginRenderPassAttribs RPBeginInfo;
     RPBeginInfo.pRenderPass  = m_pRenderPass;
@@ -336,7 +360,11 @@ void TestScene::Render()
 
     envMaps->RenderActor(m_Camera, false);
 
-    lights->RenderActor(m_Camera, false);
+    ambientlight->RenderActor(m_Camera, false);
+    for (auto light : lights)
+    {
+        light->RenderActor(m_Camera, false);
+    }
 
     m_pImmediateContext->EndRenderPass();
 
@@ -364,7 +392,10 @@ void TestScene::Update(double CurrTime, double ElapsedTime)
             actor->Update(CurrTime, ElapsedTime);
     }
 
-    lights->UpdateActor(CurrTime, ElapsedTime);
+    for (auto light : lights)
+    {
+        light->UpdateActor(CurrTime, ElapsedTime);
+    }
 
     //if (m_InputController.IsKeyDown(InputKeys::MoveBackward))
     //    actors.back()->setState(Actor::ActorState::Dead);

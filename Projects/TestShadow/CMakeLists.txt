@@ -14,6 +14,8 @@ set(SOURCE
     src/GLTFObject.cpp
     src/EnvMapP.cpp
     src/Light.cpp
+    src/AmbientLight.cpp
+    src/PointLight.cpp
     src/TexturedCube.cpp
 )
 
@@ -30,6 +32,8 @@ set(INCLUDE
     src/EnvMap.h
     src/EnvMapP.h
     src/Light.h
+    src/AmbientLight.h
+    src/PointLight.h
     src/TexturedCube.hpp
 )
 

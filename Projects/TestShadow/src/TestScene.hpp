@@ -36,6 +36,8 @@
 #include "EnvMap.h"
 #include "EnvMapP.h"
 #include "Light.h"
+#include "AmbientLight.h"
+#include "PointLight.h"
 
 namespace Diligent
 {
@@ -87,7 +89,11 @@ private:
     std::vector<Actor*> actors;
 
     std::unique_ptr<EnvMap> envMaps;
-    std::unique_ptr<Light> lights;
+    std::unique_ptr<AmbientLight> ambientlight;
+    std::vector<PointLight*> lights;
+
+    RefCntAutoPtr<ITexture> ColorBuffer;
+    RefCntAutoPtr<ITexture> DepthZBuffer;
 
     SampleInitInfo Init;
 };
