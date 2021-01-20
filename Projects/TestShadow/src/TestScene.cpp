@@ -96,14 +96,22 @@ void TestScene::Initialize(const SampleInitInfo& InitInfo)
     lights.emplace_back(light2);
     lights.emplace_back(light3);
 
-    actors.emplace_back(new Helmet(Init, m_BackgroundMode, m_pRenderPass));
-    actors.emplace_back(new Plane(Init, m_BackgroundMode, m_pRenderPass));
-    //actors.emplace_back(new AnimPeople(Init, m_BackgroundMode, m_pRenderPass));
+    Helmet* casque1 = new Helmet(Init, m_BackgroundMode, m_pRenderPass);
+    casque1->setPosition(float3(-1, 0, 0));
 
-    for (auto actor : actors)
-    {
-        actor->setPosition(float3(0.0f, 0.0f, 0.0f));
-    }
+    Helmet* casque2 = new Helmet(Init, m_BackgroundMode, m_pRenderPass);
+    casque2->setPosition(float3(0, 0, 0));
+
+    Helmet* casque3 = new Helmet(Init, m_BackgroundMode, m_pRenderPass);
+    casque3->setPosition(float3(1, 0, 0));
+
+    Plane* sol = new Plane(Init, m_BackgroundMode, m_pRenderPass);
+    sol->setPosition(float3(0, -0.25, 0));
+
+    actors.emplace_back(casque1);
+    actors.emplace_back(casque2);
+    actors.emplace_back(casque3);
+    actors.emplace_back(sol);
 }
 
 void TestScene::CreateRenderPass()
