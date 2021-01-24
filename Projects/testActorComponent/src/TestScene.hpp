@@ -31,12 +31,6 @@
 #include "SampleBase.hpp"
 #include "BasicMath.hpp"
 #include "Actor.h"
-#include "Camera.h"
-#include "EnvMap.h"
-#include "EnvMapP.h"
-#include "ReactPhysic.hpp"
-#include "Component.h"
-#include "RigidbodyComponent.hpp"
 
 namespace Diligent
 {
@@ -44,13 +38,6 @@ namespace Diligent
 class TestScene final : public SampleBase
 {
 public:
-
-    static TestScene& instance()
-    {
-        static TestScene inst;
-        return inst;
-    }
-
     virtual void GetEngineInitializationAttribs(RENDER_DEVICE_TYPE DeviceType, EngineCreateInfo& EngineCI, SwapChainDesc& SCDesc) override final;
 
     virtual void Initialize(const SampleInitInfo& InitInfo) override final;
@@ -58,36 +45,24 @@ public:
     virtual void Render() override final;
     virtual void Update(double CurrTime, double ElapsedTime) override final;
 
-    SampleInitInfo getInitInfo() { return Init; }
-
-    void removeActor(Actor* actor);
-    void addActor(Actor* actor);
-
-    virtual const Char* GetSampleName() const override final { return "Scene"; }
+    virtual const Char* GetSampleName() const override final { return "TestScene"; }
 
 private:
-    //Attributes 
-    RefCntAutoPtr<IBuffer> m_CameraAttribsCB;
+    void CreateShadowMapVisPSO();
 
-    BackgroundMode m_BackgroundMode = BackgroundMode::EnvironmentMap;
+    RefCntAutoPtr<IShaderResourceBinding> m_ShadowMapVisSRB;
+    RefCntAutoPtr<IPipelineState>         m_pShadowMapVisPSO;
 
-    Camera m_Camera;
-
-    MouseState m_LastMouseState;
+    float4x4       m_CubeWorldMatrix;
+    float4x4       m_CameraViewProjMatrix;
+    float4x4       m_WorldToShadowMapUVDepthMatr;
+    float3         m_LightDirection  = normalize(float3(-0.49f, -0.60f, 0.64f));
+    Uint32         m_ShadowMapSize   = 512;
+    TEXTURE_FORMAT m_ShadowMapFormat = TEX_FORMAT_D16_UNORM;
 
     std::vector<Actor*> actors;
 
-    std::unique_ptr<EnvMap> envMaps;
-
     SampleInitInfo Init;
-
-    //React physic 3d
-    ReactPhysic* _reactPhysic;
-
-    //Functions
-    void ActorCreation();
-    RigidbodyComponent* RigidbodyComponentCreation(Actor* actor, reactphysics3d::Transform transform, BodyType type = BodyType::DYNAMIC);
-    void CollisionComponentCreation(Actor* actor, RigidbodyComponent* rb, CollisionShape* shape, reactphysics3d::Transform transform);
 };
 
 } // namespace Diligent
