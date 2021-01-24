@@ -58,7 +58,7 @@ public:
     // clang-format off
     const float4x4& GetViewMatrix()  const { return m_ViewMatrix;  }
     const float4x4& GetWorldMatrix() const { return m_WorldMatrix; }
-    const float4x4& GetProjMatrix()  const { return m_ProjMatrix;  }
+    const float4x4& GetProjMatrix()  const { return GetReferenceRotiation();  }
 
     float3 GetWorldRight() const { return float3(m_ViewMatrix._11, m_ViewMatrix._21, m_ViewMatrix._31); }
     float3 GetWorldUp()    const { return float3(m_ViewMatrix._12, m_ViewMatrix._22, m_ViewMatrix._32); }
@@ -110,7 +110,7 @@ public:
     float m_fSuperSpeedUpScale = 1.f;
     float m_fHandness          = 1.f; // -1 - left handed
                                       // +1 - right handed
-    Quaternion rotation = Quaternion(m_fYawAngle,m_fPitchAngle,m_fRollAngle,1.0f);
+    Quaternion rotation = Quaternion(m_fYawAngle, m_fPitchAngle, m_fRollAngle, 1.0f);
 
 protected:
     float4x4 GetReferenceRotiation() const;

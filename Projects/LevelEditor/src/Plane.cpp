@@ -8,9 +8,10 @@ using namespace Diligent;
 
 Plane::Plane(const SampleInitInfo& InitInfo)
 {
-    Initialize(InitInfo);
+    GLTFObject::Initialize(InitInfo);
+    setObjectPath("models/Plane/Plane.gltf");
 }
-
+/*
 void Plane::Initialize(const SampleInitInfo& InitInfo)
 {
     Actor::Initialize(InitInfo);
@@ -149,4 +150,13 @@ void Plane::RenderActor(const float4x4& CameraViewProj, bool IsShadowPass)
 
     DrawAttribs DrawAttrs(4, DRAW_FLAG_VERIFY_ALL);
     m_pImmediateContext->Draw(DrawAttrs);
+}
+*/
+
+void Plane::UpdateActor(double CurrTime, double ElapsedTime)
+{
+    // Animate the cube
+    //setRotation(Quaternion::RotationFromAxisAngle(float3(0, 1, 0), static_cast<float>(CurrTime) * 1.0f));
+    //    m_WorldMatrix = float4x4::Translation(coord[0], coord[1], coord[2]);
+    GLTFObject::computeWorldTransform();
 }

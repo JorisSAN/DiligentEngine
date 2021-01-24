@@ -15,6 +15,7 @@ public:
     RigidbodyComponent(const RigidbodyComponent&) = delete;
     RigidbodyComponent& operator=(const RigidbodyComponent&) = delete;
 
+
     virtual void update(double CurrTime, double ElapsedTime);
 
     TypeID GetType() const override { return TRigidbodyComponent; }
@@ -27,5 +28,4 @@ private:
     RigidBody* _rigidBody;
 };
 
-} 
-//namespace Diligent
+} //namespace Diligent

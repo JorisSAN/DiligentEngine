@@ -82,34 +82,73 @@ bool TestLineIntersection(Actor* actor, LineSegement lineseg) {
     //AABB
     return false;
 }
-bool TestScene::Unproject(float windowsX, float windowsY, float windowsZ, const float4x4& modelView, float4x4& projection, float3& worldCoordinate)
+float3 TestScene::Unproject(float windowsX, float windowsY, const float4x4& modelView,const float4x4& projection)
 {
-    std::string message;
 
-    //message= "model view:" + std::to_string(modelView.m00) + " " + std::to_string(projection.m00);
-    //log.addInfo(message);
-    float4x4 m (projection);
-    m.Inverse();
+    float winHeight = (float)m_pSwapChain->GetDesc().Height;
+    float winWidth  = (float)m_pSwapChain->GetDesc().Width;
+    float mouseX    = windowsX / (winWidth * 0.5f) - 1.0f;
+    float mouseY    = windowsY / (winHeight * 0.5f) - 1.0f;
+
+    float4x4 proj  = m_Camera.GetViewMatrix();
+    float4x4 view  = m_Camera.GetViewMatrix();
+    float4x4 invVP = (proj * view);
+    invVP.Inverse();
+    std::string message       = "view";
+    for (int i = 0; i < 4; i++)
+    {
+        for (int j = 0; j < 4; j++)
+        {
+            message += std::to_string(proj[i][j]) + " ";
+        }
+        message += "\n";
+    }
+      log.addInfo(message);
+
+    float4   screenPos = float4(mouseX, -mouseY, 1.0f, 1.0f);
+    float4   worldPos  = invVP * screenPos;
+    message            = "worldPos :" + std::to_string(screenPos.x) + " " + std::to_string(screenPos.y) + " " + std::to_string(screenPos.z) + " ";
+    log.addInfo(message);
+
+    float3   dir       = normalize(worldPos);
+    
+    return dir;
     /*
+    std::string message;
+    
+    message= "model view:" + std::to_string(modelView.m00) + " " + std::to_string(projection.m00);
+  //  log.addInfo(message);
+    float4x4 m(modelView);
+ 
+    
     message = "model view:";
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++)
         {
-            message += std::to_string(projection[i][j]);
+            message += std::to_string(m[i][j])+" ";
             
         }   
         message += "\n";
     }
-    log.addInfo(message);
-    */
+    //log.addInfo(message);
+    
     
     float4   in;
     float winHeight = (float)m_pSwapChain->GetDesc().Height;
     float    winWidth = (float)m_pSwapChain->GetDesc().Width;
-    in[0] = windowsX / winWidth * 2.0f - 1.0f;
-    in[1] = windowsY / winHeight * 2.0f - 1.0f;
+    in[0] = windowsX /( winWidth * 0.5f) - 1.0f;
+    in[1] = windowsY / winHeight * 0.5f) - 1.0f;
     in[2] = 2.0f * windowsZ - 1.0f;
     in[3] = 1.0f;
+    message            = "In : ";
+    for (int i = 0; i < 4; i++)
+    {
+        
+        message += std::to_string(in[i]) + " ";
+        
+    }
+        log.addInfo(message);
+
     //to world coordinate
     float4 out= (m * in);
     if (out[3] == 0.0)
@@ -119,8 +158,8 @@ bool TestScene::Unproject(float windowsX, float windowsY, float windowsZ, const 
         worldCoordinate.z = 0;
         return false;
     }
-   // message = "in:" + std::to_string(in[0]) + " " + std::to_string(in[1]) + " " + std::to_string(in[2]) + " ";
-    //log.addInfo(message);
+    message = "in:" + std::to_string(winHeight) + " " + std::to_string(winWidth) + " " + std::to_string(in[2]) + " ";
+//    log.addInfo(message);
 
     worldCoordinate.x = out[0] * out[3];
     worldCoordinate.y = out[1] * out[3];
@@ -132,7 +171,8 @@ bool TestScene::Unproject(float windowsX, float windowsY, float windowsZ, const 
     //log.addInfo(message);
 
     return true;
-}
+    */
+ }
 
 
 float3 ToEulerAngles(Quaternion quat)
@@ -304,7 +344,7 @@ RigidbodyComponent* TestScene::RigidbodyComponentCreation(Actor* actor, reactphy
 void TestScene::CollisionComponentCreation(Actor* actor, RigidbodyComponent* rb, CollisionShape* shape, reactphysics3d::Transform transform)
 {
     CollisionComponent* colisionComponent = new CollisionComponent(actor->GetActor(), shape);
-    colisionComponent->AddCollisionShape(shape);
+    colisionComponent->SetCollisionShape(shape);
     colisionComponent->SetCollider(rb->GetRigidBody()->addCollider(shape, transform));
     actor->addComponent(colisionComponent);
 }
@@ -319,7 +359,7 @@ void TestScene::CreateAdaptedActor(std::string actorClass, const SampleInitInfo&
 
         //rigid body
         RigidbodyComponent* rbCube = RigidbodyComponentCreation(cube, cubeTransform,BodyType::STATIC);
-
+        rbCube->GetRigidBody()->setUserData(rbCube);
 
         // collision
         BoxShape* boxShape = _reactPhysic->GetPhysicCommon()->createBoxShape(reactphysics3d::Vector3(1, 1, 1));
@@ -336,17 +376,25 @@ void TestScene::CreateAdaptedActor(std::string actorClass, const SampleInitInfo&
 // Render a frame
 void TestScene::Render()
 {
-    // Bind main back buffer
-    auto* pRTV = m_pSwapChain->GetCurrentBackBufferRTV();
-    auto* pDSV = m_pSwapChain->GetDepthBufferDSV();
-    m_pImmediateContext->SetRenderTargets(1, &pRTV, pDSV, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
-    const float ClearColor[] = {0.5f, 0.5f, 0.5f, 1.0f};
-    m_pImmediateContext->ClearRenderTarget(pRTV, ClearColor, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
-    m_pImmediateContext->ClearDepthStencil(pDSV, CLEAR_DEPTH_FLAG, 1.f, 0, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
-
-    for (auto actor : actors)
     {
-        actor->RenderActor(m_CameraViewProjMatrix, false);
+        // Reset default framebuffer
+        auto* pRTV = m_pSwapChain->GetCurrentBackBufferRTV();
+        auto* pDSV = m_pSwapChain->GetDepthBufferDSV();
+        m_pImmediateContext->SetRenderTargets(1, &pRTV, pDSV, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+
+        // Clear the back buffer
+        const float ClearColor[] = {0.23f, 0.5f, 0.74f, 1.0f};
+        m_pImmediateContext->ClearRenderTarget(pRTV, ClearColor, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+        m_pImmediateContext->ClearDepthStencil(pDSV, CLEAR_DEPTH_FLAG, 1.f, 0, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+
+       
+        for (auto actor : actors)
+        {
+            if (actor->getState() == Actor::ActorState::Active)
+            {
+                actor->RenderActor(m_Camera, false);
+            }
+        }
     }
 }
 
@@ -662,25 +710,31 @@ void TestScene::Update(double CurrTime, double ElapsedTime)
         log.addInfo(message);
     }
  */
-    if (mouseState.ButtonFlags == MouseState::BUTTON_FLAG_RIGHT && (m_LastMouseState.ButtonFlags != mouseState.ButtonFlags))
+    if (mouseState.ButtonFlags == MouseState::BUTTON_FLAG_LEFT && (m_LastMouseState.ButtonFlags != mouseState.ButtonFlags))
     {
         // get the mouse position in the screen
         int mouse_x= m_LastMouseState.PosX;
         int mouse_y= m_LastMouseState.PosY;
         LineSegement lineSeg;
-        std::string  message = "Good Click : ";
+        std::string  message ;
+        float3       rayDirection= Unproject(mouse_x, mouse_y, m_Camera.GetViewMatrix(), m_Camera.GetProjMatrix());
+        //Unproject(mouse_x, mouse_y, 1.0f, m_Camera.GetWorldMatrix(), m_Camera.GetViewMatrix(), lineSeg.end);
+        message = "Camera position :" + std::to_string(m_Camera.GetPos().x) + " " + std::to_string(m_Camera.GetPos().y) + " " + std::to_string(m_Camera.GetPos().z) + " ";
+        //lineSeg.start -= m_Camera.GetPos();
+        log.addInfo(message);
+        
+        message = "rayDirection :" + std::to_string(rayDirection.x) + " " + std::to_string(rayDirection.y) + " " + std::to_string(rayDirection.z) + " ";
         log.addInfo(message);
 
-        
-        Unproject(mouse_x, mouse_y, 0.0f, m_CubeWorldMatrix, m_CameraViewProjMatrix, lineSeg.start);
-        Unproject(mouse_x, mouse_y, 1.0f, m_CubeWorldMatrix, m_CameraViewProjMatrix, lineSeg.end);
-        message = "lign start :" + std::to_string(lineSeg.start.x) + " " + std::to_string(lineSeg.start.y) + " " + std::to_string(lineSeg.start.z) + " ";
-        
-        reactphysics3d::Vector3 vec(static_cast<float>(lineSeg.start.x), static_cast<float>(lineSeg.start.y), static_cast<decimal>(lineSeg.start.z));
+        //lineSeg.end -= m_Camera.GetPos();
+        float3                  cameraPosition = m_Camera.GetPos();
+        lineSeg.start         = cameraPosition;
+        lineSeg.end      = cameraPosition + rayDirection * 500;
+        reactphysics3d::Vector3 vec(lineSeg.start.x, lineSeg.start.y, lineSeg.start.z);
         reactphysics3d::Vector3 vec2(lineSeg.end.x,lineSeg.end.y, lineSeg.end.z);
-        float4                  fuck(1, 2, 3, 4);
-        message = "lign start :" + std::to_string(lineSeg.start.x) + " " + std::to_string(lineSeg.start.y) + " " + std::to_string(lineSeg.start.z) + " ";
-        log.addInfo(message);
+       
+         message = "lign start :" + std::to_string(vec.x) + " " + std::to_string(vec.y) + " " + std::to_string(vec.z) + " ";
+       log.addInfo(message);
 
         message = "lign end :" + std::to_string(lineSeg.end.x) + " " + std::to_string(lineSeg.end.y) + " " + std::to_string(lineSeg.end.z) + " ";
         log.addInfo(message);
@@ -689,16 +743,20 @@ void TestScene::Update(double CurrTime, double ElapsedTime)
         MyRaycastCallback testasr;
 
         Raycast interRay(vec,vec2);
-        Raycast testRay(reactphysics3d::Vector3(0, 10, 0), reactphysics3d::Vector3(0, -10, 0));
+//        Raycast testRay(reactphysics3d::Vector3(10, 0, 0), reactphysics3d::Vector3(-10, 0, 0));
         log.addInfo(testasr.messs);
-        testRay.UseRaycast(_reactPhysic->GetPhysicWorld(), testasr);
-        _reactPhysic->GetPhysicWorld()->raycast(testRay.GetRay(), &testasr);
-        log.addInfo(testasr.messs);
+        //testRay.UseRaycast(_reactPhysic->GetPhysicWorld(), testasr);
+        _reactPhysic->GetPhysicWorld()->raycast(interRay.GetRay(), &testasr);
+        //log.addInfo(testasr.messs);
 
-        interRay.UseRaycast(_reactPhysic->GetPhysicWorld(),testasr);
+        //interRay.UseRaycast(_reactPhysic->GetPhysicWorld(),testasr);
+        if (testasr.messs == "Hit point : ") {
 
-        log.addInfo(testasr.messs);
-        /*
+            Actor* ownerTouch = testasr.bodyTouch->GetOwner();
+            indexActors =ReturnIndexOfActor(ownerTouch);
+            log.addInfo(message);
+        
+        }/*
         if (callback.hit) {
 
             reactphysics3d::Vector3 positionHits=callback.hitpoints->at(0);
@@ -711,11 +769,10 @@ void TestScene::Update(double CurrTime, double ElapsedTime)
 
         message = "test:" + callback.hit;
         */
-        log.addInfo(message);
+        //log.addInfo(message);
         // if the ray touch any objects get a list of objects 
         // check which one it touches first
         // set it to the object selected
-        Raycast ray();
     }
     m_LastMouseState = mouseState;
 
@@ -738,4 +795,27 @@ void TestScene::Update(double CurrTime, double ElapsedTime)
     // Compute camera view-projection matrix
     m_CameraViewProjMatrix = CameraView * SrfPreTransform * Proj;
 }
+
+
+int TestScene::ReturnIndexOfActor(Actor *actor) {
+  
+    for (int i = 0; i < actors.size(); i++) {
+        if (actors.at(i) == actor) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+
+void TestScene::removeActor(Actor* actor)
+{
+    auto iter = std::find(begin(actors), end(actors), actor);
+    if (iter != end(actors))
+    {
+        std::iter_swap(iter, end(actors) - 1);
+        actors.pop_back();
+    }
+}
+
 } // namespace Diligent

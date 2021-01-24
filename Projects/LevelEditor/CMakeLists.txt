@@ -13,6 +13,8 @@ set(SOURCE
     src/ReactPhysic.cpp
     src/RigidbodyComponent.cpp
 
+    src/GLTFObject.cpp
+    src/MyRaycastCallback.cpp
     src/Camera.cpp
     src/CollisionComponent.cpp
     src/Raycast.cpp
@@ -25,6 +27,7 @@ set(INCLUDE
     src/Component.h
     src/Cube.h
     src/Log.h
+    src/GLTFObject.h
     src/Plane.h
     src/TexturedCube.hpp
     src/ReactPhysic.hpp
@@ -145,3 +148,83 @@ endfunction()
 
 
 add_sample_app("LevelEditor" "Projects" "${SOURCE}" "${INCLUDE}" "${SHADERS}" "${ASSETS}")
+
+
+target_link_libraries(LevelEditor PRIVATE Diligent-AssetLoader DiligentFX)
+
+target_include_directories(LevelEditor PRIVATE
+    ../../../DiligentFX/Shaders/PostProcess/ToneMapping/public/
+)
+
+foreach(FILE ${EXTERNAL_SHADERS})
+    # Copy external shaders
+    add_custom_command(TARGET LevelEditor PRE_BUILD 
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/${FILE}" "${CMAKE_CURRENT_SOURCE_DIR}/assets/shaders"
+    )
+endforeach(FILE)
+
+set_source_files_properties(${ALL_SHADERS} PROPERTIES
+    VS_DEPLOYMENT_LOCATION "shaders"
+    MACOSX_PACKAGE_LOCATION Resources/shaders
+)
+
+set_source_files_properties(${TEXTURES} PROPERTIES
+    VS_DEPLOYMENT_LOCATION "textures"
+    MACOSX_PACKAGE_LOCATION "Resources/textures"
+)
+
+set_source_files_properties(${BOOM_BOX_MODEL} PROPERTIES
+    VS_DEPLOYMENT_LOCATION "models/BoomBoxWithAxes"
+    MACOSX_PACKAGE_LOCATION "Resources/models/BoomBoxWithAxes"
+)
+
+set_source_files_properties(${CESIUM_MAN_MODEL} PROPERTIES
+    VS_DEPLOYMENT_LOCATION "models/CesiumMan"
+    MACOSX_PACKAGE_LOCATION "Resources/models/CesiumMan"
+)
+
+set_source_files_properties(${DAMAGED_HELMENT_MODEL} PROPERTIES
+    VS_DEPLOYMENT_LOCATION "models/DamagedHelmet"
+    MACOSX_PACKAGE_LOCATION "Resources/models/DamagedHelmet"
+)
+
+set_source_files_properties(${FLIGHT_HELMENT_MODEL} PROPERTIES
+    VS_DEPLOYMENT_LOCATION "models/FlightHelmet"
+    MACOSX_PACKAGE_LOCATION "Resources/models/FlightHelmet"
+)
+
+set_source_files_properties(${METAL_ROUGH_SPHERES_MODEL} PROPERTIES
+    VS_DEPLOYMENT_LOCATION "models/MetalRoughSpheres"
+    MACOSX_PACKAGE_LOCATION "Resources/models/MetalRoughSpheres"
+)
+
+set_source_files_properties(${NORMAL_TANGENT_TEST_MODEL} PROPERTIES
+    VS_DEPLOYMENT_LOCATION "models/NormalTangentTest"
+    MACOSX_PACKAGE_LOCATION "Resources/models/NormalTangentTest"
+)
+
+set_source_files_properties(${PLANE} PROPERTIES
+    VS_DEPLOYMENT_LOCATION "models/Plane"
+    MACOSX_PACKAGE_LOCATION "Resources/models/Plane"
+)
+
+set_source_files_properties(${CUBE} PROPERTIES
+    VS_DEPLOYMENT_LOCATION "models/Cube"
+    MACOSX_PACKAGE_LOCATION "Resources/models/Cube"
+)
+
+#Add C++ Include Directories
+include_directories(${CMAKE_SOURCE_DIR}/ReactPhysics3D/include)
+
+source_group("assets" FILES ${ASSETS})
+source_group("assets\\shaders" FILES ${SHADERS})
+source_group("assets\\shaders\\external" FILES ${EXTERNAL_SHADERS})
+source_group("assets\\textures" FILES ${TEXTURES})
+source_group("assets\\models\\BoomBoxWithAxes" FILES ${BOOM_BOX_MODEL})
+source_group("assets\\models\\CesiumMan" FILES ${CESIUM_MAN_MODEL})
+source_group("assets\\models\\DamagedHelmet" FILES ${DAMAGED_HELMENT_MODEL})
+source_group("assets\\models\\FlightHelmet" FILES ${FLIGHT_HELMENT_MODEL})
+source_group("assets\\models\\MetalRoughSpheres" FILES ${METAL_ROUGH_SPHERES_MODEL})
+source_group("assets\\models\\NormalTangentTest" FILES ${NORMAL_TANGENT_TEST_MODEL})
+source_group("assets\\models\\Plane" FILES ${PLANE})
+source_group("assets\\models\\Cube" FILES ${CUBE})

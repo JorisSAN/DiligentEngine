@@ -1,4 +1,6 @@
 #include "MyRaycastCallback.h"
+#include "RigidbodyComponent.hpp"
+#include "Actor.h"
 
 decimal MyRaycastCallback::notifyRaycastHit(const RaycastInfo& info)
 {
@@ -7,12 +9,14 @@ decimal MyRaycastCallback::notifyRaycastHit(const RaycastInfo& info)
 
     Diligent::Log::Instance().addInfo(message);
     Diligent::Log::Instance().Draw();
-    //hitpoints->emplace_back(info.worldPoint);
-    //hit = true;
-    messs = message;
+
+    //Time of the great test
+    Diligent::RigidbodyComponent* infoBody = static_cast<Diligent::RigidbodyComponent*>(info.body->getUserData());
+    bodyTouch                              = infoBody;
+    //message                                = "Actor name = " + infoBody->GetOwner()->GetActorName();
+    messs = "Hit point : ";
+
+  
     // Return a fraction of 1.0 to gather all hits
     return decimal(1.0);
 }
-
-
-

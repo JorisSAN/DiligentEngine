@@ -97,7 +97,7 @@ void Camera::Update(InputController& Controller, float ElapsedTime)
     float4x4 ReferenceRotation = GetReferenceRotiation();
 
     float4x4 CameraRotation = Quaternion::createFromQuaternion(rotation) * ReferenceRotation;
-    float4x4 WorldRotation = CameraRotation.Transpose();
+    float4x4 WorldRotation  = CameraRotation.Transpose();
 
     float3 PosDeltaWorld = PosDelta * WorldRotation;
     m_Pos += PosDeltaWorld;
@@ -166,11 +166,11 @@ void Camera::SetRotation(float Yaw, float Pitch, float Roll)
 }
 
 void Camera::SetProjAttribs(Float32           NearClipPlane,
-                                       Float32           FarClipPlane,
-                                       Float32           AspectRatio,
-                                       Float32           FOV,
-                                       SURFACE_TRANSFORM SrfPreTransform,
-                                       bool              IsGL)
+                            Float32           FarClipPlane,
+                            Float32           AspectRatio,
+                            Float32           FOV,
+                            SURFACE_TRANSFORM SrfPreTransform,
+                            bool              IsGL)
 {
     m_ProjAttribs.NearClipPlane = NearClipPlane;
     m_ProjAttribs.FarClipPlane  = FarClipPlane;

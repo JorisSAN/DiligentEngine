@@ -21,6 +21,7 @@ public:
 
     static const char* TypeNames[NUM_COMPONENTS_TYPES];
     virtual TypeID     GetType() const = 0;
+    Actor*             GetOwner() { return &owner; }
 
     Component(Actor* ownerP, int updateOrderP = 100);
     Component() = delete;
