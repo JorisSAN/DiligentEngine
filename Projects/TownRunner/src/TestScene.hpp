@@ -37,6 +37,10 @@
 #include "ReactPhysic.hpp"
 #include "Component.h"
 #include "RigidbodyComponent.hpp"
+#include "Log.h"
+#include "CollisionComponent.hpp"
+#include "ReactEventListener.h"
+#include "Player.h"
 
 namespace Diligent
 {
@@ -65,13 +69,15 @@ public:
 
     virtual const Char* GetSampleName() const override final { return "Scene"; }
 
+    //void AddLogText(std::string text);
+
 private:
     //Attributes 
     RefCntAutoPtr<IBuffer> m_CameraAttribsCB;
 
     BackgroundMode m_BackgroundMode = BackgroundMode::EnvironmentMap;
 
-    Camera m_Camera;
+    //Camera m_Camera;
 
     MouseState m_LastMouseState;
 
@@ -84,10 +90,21 @@ private:
     //React physic 3d
     ReactPhysic* _reactPhysic;
 
+    //Trigger event
+    ReactEventListener _listener;
+
+    //Player
+    Player* _Player;
+
+    //Log  log;
+    bool rayTest = true;
+    bool start   = true;
+
     //Functions
     void ActorCreation();
+    void PlayerCreation();
     RigidbodyComponent* RigidbodyComponentCreation(Actor* actor, reactphysics3d::Transform transform, BodyType type = BodyType::DYNAMIC);
-    void CollisionComponentCreation(Actor* actor, RigidbodyComponent* rb, CollisionShape* shape, reactphysics3d::Transform transform);
+    void CollisionComponentCreation(Actor* actor, RigidbodyComponent* rb, CollisionShape* shape, reactphysics3d::Transform transform, bool isTrigger);
 };
 
 } // namespace Diligent
