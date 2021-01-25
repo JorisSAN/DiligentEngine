@@ -1,21 +1,20 @@
 #pragma once
-#include "Actor.h"
+#include "GLTFObject.h"
 
 namespace Diligent
 {
 
-class Plane : public Actor
+class Plane : public GLTFObject
 {
 public:
     Plane(const SampleInitInfo& InitInfo);
 
-    void Initialize(const SampleInitInfo& InitInfo) override;
+   // Plane(const SampleInitInfo& InitInfo, std::string name);
 
-    void RenderActor(const float4x4& CameraViewProj, bool IsShadowPass) override;
+    void UpdateActor(double CurrTime, double ElapsedTime) override;
+
     char* getClassName() { return "Plane"; }
 
-private:
-    void CreatePSO() override;
 };
 
 } // namespace Diligent

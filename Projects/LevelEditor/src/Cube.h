@@ -1,24 +1,18 @@
 #pragma once
-#include "Actor.h"
+#include "GLTFObject.h"
 
 namespace Diligent
 {
 
-class Cube : public Actor
+class Cube : public GLTFObject
 {
 public:
     Cube(const SampleInitInfo& InitInfo);
 
-    void Initialize(const SampleInitInfo& InitInfo) override;
-
-    void RenderActor(const float4x4& CameraViewProj, bool IsShadowPass) override;
-
     void UpdateActor(double CurrTime, double ElapsedTime) override;
-    char* getClassName() override{return "Cube";} 
 
-private:
-    void CreatePSO() override;
-    void CreateVertexBuffer() override;
+    
+    char* getClassName() override{return "Cube";} 
 };
 
 } // namespace Diligent

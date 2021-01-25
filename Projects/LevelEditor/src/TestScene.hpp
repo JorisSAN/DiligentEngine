@@ -30,9 +30,12 @@
 
 #include "SampleBase.hpp"
 #include "BasicMath.hpp"
-//#include "Camera.h"
+#include "Camera.h"
 #include "Actor.h"
 #include "Log.h"
+#include "ReactPhysic.hpp"
+#include "RigidbodyComponent.hpp"
+#include "MyRaycastCallback.h"
 
 namespace Diligent
 {
@@ -40,7 +43,13 @@ namespace Diligent
 class TestScene final : public SampleBase
 {
 public:
+    static TestScene& instance()
+    {
+        static TestScene inst;
+        return inst;
+    }
     virtual void GetEngineInitializationAttribs(RENDER_DEVICE_TYPE DeviceType, EngineCreateInfo& EngineCI, SwapChainDesc& SCDesc) override final;
+    SampleInitInfo getInitInfo() { return Init; }
 
     virtual void Initialize(const SampleInitInfo& InitInfo) override final;
     virtual void Render() override final;
@@ -52,11 +61,14 @@ public:
     ////// Level editor function
     void ReadFile(std::string fileName, const SampleInitInfo& InitInfo);
     void         CreateAdaptedActor(std::string actorClass, const SampleInitInfo& InitInfo);
+    void         CreateBasicMesh(const char* path, const SampleInitInfo& InitInfo);
     void         SaveLevel(std::string fileName);
     void                UpdateUI(bool showMidUI);
-    bool                Unproject(float windowsX, float windowsY, float windowsZ, const float4x4& modelView, float4x4& projection, float3& worldCoordinate);
-    std::vector<Actor*> Pick(float x, float y);
-    
+    float3                Unproject(float windowsX, float windowsY,  const float4x4& modelView,const float4x4& projection);
+    int                 ReturnIndexOfActor(Actor *actor);
+
+    void removeActor(Actor* actor);
+
     RefCntAutoPtr<IShaderResourceBinding> m_ShadowMapVisSRB;
     RefCntAutoPtr<IPipelineState>         m_pShadowMapVisPSO;
     float4x4       m_CubeWorldMatrix;
@@ -70,15 +82,20 @@ public:
     int                 indexActors       = -1;
     std::vector<Actor*> actors;
     char               nameSelected[32];
+    char                meshSelected[64];
     char               levelName[32];
     std::vector<float3> actorsPos;
     std::vector<Quaternion> actorsRot;
     std::vector<float> actorsSca;
+    MouseState              m_LastMouseStateUI;
     MouseState              m_LastMouseState;
-//    Camera                  m_Camera;
+    Camera                  m_Camera;
     Log log;
+    SampleInitInfo Init;
 
-
+    ReactPhysic* _reactPhysic;
+    RigidbodyComponent* RigidbodyComponentCreation(Actor* actor, reactphysics3d::Transform transform, BodyType type = BodyType::DYNAMIC);
+    void CollisionComponentCreation(Actor* actor, RigidbodyComponent* rb, CollisionShape* shape, reactphysics3d::Transform transform);
 };
 
 } // namespace Diligent
