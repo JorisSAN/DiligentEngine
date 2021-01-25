@@ -50,7 +50,7 @@ InputKeys MapCameraKeyWnd(UINT nKey)
             return InputKeys::AltDown;
 
         case VK_LEFT:
-        case 'Q':
+        case 'A':
             return InputKeys::MoveLeft;
 
         case VK_RIGHT:
@@ -58,7 +58,7 @@ InputKeys MapCameraKeyWnd(UINT nKey)
             return InputKeys::MoveRight;
 
         case VK_UP:
-        case 'Z':
+        case 'W':
             return InputKeys::MoveForward;
 
         case VK_DOWN:
@@ -70,7 +70,7 @@ InputKeys MapCameraKeyWnd(UINT nKey)
             return InputKeys::MoveUp; // pgup
 
         case VK_NEXT:
-        case 'A':
+        case 'Q':
             return InputKeys::MoveDown; // pgdn
 
         case VK_HOME:

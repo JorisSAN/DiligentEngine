@@ -20,7 +20,6 @@ set(SOURCE
     src/Raycast.cpp
     src/MyRaycastCallback.cpp
     src/ReactEventListener.cpp
-    src/Player.cpp
 )
 
 set(INCLUDE
@@ -42,7 +41,6 @@ set(INCLUDE
     src/Raycast.h
     src/MyRaycastCallback.h
     src/ReactEventListener.h
-    src/Player.h
 )
 
 set(SHADERS

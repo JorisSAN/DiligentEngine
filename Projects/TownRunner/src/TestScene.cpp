@@ -40,10 +40,6 @@
 #include "Actor.h"
 #include "Plane.h"
 #include "CollisionComponent.hpp"
-#include "Raycast.h"
-#include "MyRaycastCallback.h"
-#include "RigidbodyComponent.hpp"
-
 
 namespace Diligent
 {
@@ -69,69 +65,52 @@ void TestScene::Initialize(const SampleInitInfo& InitInfo)
 
     Init = InitInfo;
 
-    PlayerCreation();
+    m_Camera.SetPos(float3(5.0f, 0.0f, 0.0f));
+    m_Camera.SetRotation(PI_F / 2.f, 0, 0);
+    m_Camera.SetRotationSpeed(0.005f);
+    m_Camera.SetMoveSpeed(5.f);
+    m_Camera.SetSpeedUpScales(5.f, 10.f);
 
     envMaps.reset(new EnvMap(Init, m_BackgroundMode));
 
     ActorCreation();
 }
 
-
-//Initialize Player and it's camera
-void TestScene::PlayerCreation()
-{
-    _Player = new Player(Init, m_BackgroundMode, "Player1");
-
-    _Player->GetCamera()->SetPos(float3(5.0f, 0.0f, 0.0f));
-    _Player->GetCamera()->SetRotation(PI_F / 2.f, 0, 0);
-    _Player->GetCamera()->SetRotationSpeed(0.005f);
-    _Player->GetCamera()->SetMoveSpeed(5.f);
-    _Player->GetCamera()->SetSpeedUpScales(5.f, 10.f);
-}
-
-
-
 void TestScene::ActorCreation()
 {
-    ////////Create actor and their components
-    
-    //////Create Helmet
+    //Create actor and their components
+    //Create Helmet
     Helmet*                    helmet1 = new Helmet(Init, m_BackgroundMode, "helmet1");
-    addActor(helmet1);
-    
-    reactphysics3d::Transform helmetTransform(reactphysics3d::Vector3(0,10,0), reactphysics3d::Quaternion::identity());
+    helmet1->setPosition(float3(0, 0, 0));
+    reactphysics3d::Transform helmetTransform(reactphysics3d::Vector3::zero(), reactphysics3d::Quaternion::identity());
 
     //rb
     RigidbodyComponent* helmetRigidbody = RigidbodyComponentCreation(helmet1, helmetTransform);
 
     //collision
-    SphereShape* sphereShape = _reactPhysic->GetPhysicCommon()->createSphereShape(2);
-    reactphysics3d::Transform  baseCollisionTransform(reactphysics3d::Vector3::zero(), reactphysics3d::Quaternion::identity());
-    CollisionComponentCreation(helmet1, helmetRigidbody, sphereShape, baseCollisionTransform, false);
-
-    //Add actor to list
-    //actors.emplace_back(helmet1);
+    SphereShape* sphereShape = _reactPhysic->GetPhysicCommon()->createSphereShape(0.5);
+    CollisionComponentCreation(helmet1, helmetRigidbody, sphereShape, helmetTransform);
 
 
-    
-    //////Create a plane
+
+    //Create a plane
     Plane*                    plane1 = new Plane(Init, m_BackgroundMode, "plane1");
-    addActor(plane1);
-    
-    reactphysics3d::Transform planeTransform(reactphysics3d::Vector3::zero(), reactphysics3d::Quaternion::identity());
+    helmet1->setPosition(float3(0, -1, 0));
+    reactphysics3d::Transform planeTransform(reactphysics3d::Vector3(0, -1, 0), reactphysics3d::Quaternion::identity());
 
     //rb
     RigidbodyComponent* rbPlane = RigidbodyComponentCreation(plane1, planeTransform, BodyType::STATIC);
 
     //collision
-    BoxShape* boxShape = _reactPhysic->GetPhysicCommon()->createBoxShape(reactphysics3d::Vector3(2.5, 2.5, 2.5));
-    CollisionComponentCreation(plane1, rbPlane, boxShape, baseCollisionTransform, false);
+    BoxShape* boxShape = _reactPhysic->GetPhysicCommon()->createBoxShape(reactphysics3d::Vector3(2.5, 0.01, 2.5));
+    CollisionComponentCreation(plane1, rbPlane, boxShape, planeTransform);
+    
+
+
 
     //Add actor to list
-    //actors.emplace_back(plane1); 
-
-    // Register your event listener class
-    _reactPhysic->GetPhysicWorld()->setEventListener(&_listener);
+    actors.emplace_back(helmet1);
+    actors.emplace_back(plane1);    
 }
 
 RigidbodyComponent* TestScene::RigidbodyComponentCreation(Actor* actor, reactphysics3d::Transform transform, BodyType type)
@@ -142,14 +121,15 @@ RigidbodyComponent* TestScene::RigidbodyComponentCreation(Actor* actor, reactphy
     return rigidbody;
 }
 
-void TestScene::CollisionComponentCreation(Actor* actor, RigidbodyComponent* rb, CollisionShape* shape, reactphysics3d::Transform transform, bool isTrigger)
+void TestScene::CollisionComponentCreation(Actor* actor, RigidbodyComponent* rb, CollisionShape* shape, reactphysics3d::Transform transform)
 {
     CollisionComponent* colisionComponent = new CollisionComponent(actor->GetActor(), shape);
-    colisionComponent->SetCollisionShape(shape);
+    colisionComponent->AddCollisionShape(shape);
     colisionComponent->SetCollider(rb->GetRigidBody()->addCollider(shape, transform));
-    colisionComponent->GetCollider()->setIsTrigger(isTrigger);
     actor->addComponent(colisionComponent);
 }
+
+
 
 
 // Render a frame
@@ -165,13 +145,13 @@ void TestScene::Render()
     m_pImmediateContext->ClearRenderTarget(pRTV, ClearColor, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
     m_pImmediateContext->ClearDepthStencil(pDSV, CLEAR_DEPTH_FLAG, 1.f, 0, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
 
-    envMaps->RenderActor(*_Player->GetCamera(), false);
+    envMaps->RenderActor(m_Camera, false);
 
     for (auto actor : actors)
     {
         if (actor->getState() == Actor::ActorState::Active)
         {
-            actor->RenderActor(*_Player->GetCamera(), false);
+            actor->RenderActor(m_Camera, false);
         }
     }
 }
@@ -183,35 +163,8 @@ void TestScene::Update(double CurrTime, double ElapsedTime)
     //React physic
     _reactPhysic->Update();
 
-    ///////Raycast test
-    
-    //Let's project a simple raycast after 3 seconds1
-    /*
-    if (CurrTime > 3.0 && rayTest) 
-    {
-        rayTest = false;
 
-        // Create the ray
-        reactphysics3d::Vector3 startPoint(0, 20, 0);
-        reactphysics3d::Vector3 endPoint(0, 0, 0);
-        Raycast                 ray1(startPoint, endPoint);
-
-        // Create an instance of your callback class
-        MyRaycastCallback callbackObject;
-
-        // Raycast test
-        ray1.UseRaycast(_reactPhysic->GetPhysicWorld(), callbackObject);
-    }
-    */
-
-    
-    //Draw log
-    Diligent::Log::Instance().Draw();
-
-    //Update Player
-    _Player->UpdatePlayer(CurrTime, ElapsedTime, m_InputController);
-
-    //_Player->GetCamera()->Update(m_InputController, static_cast<float>(ElapsedTime));
+    m_Camera.Update(m_InputController, static_cast<float>(ElapsedTime));
 
     // Animate Actors
     for (auto actor : actors)
@@ -238,6 +191,5 @@ void TestScene::removeActor(Actor* actor)
         actors.pop_back();
     }
 }
-
 
 } // namespace Diligent
