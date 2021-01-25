@@ -12,7 +12,7 @@ set(SOURCE
     src/TexturedCube.cpp
     src/ReactPhysic.cpp
     src/RigidbodyComponent.cpp
-
+    src/BasicMesh.cpp
     src/GLTFObject.cpp
     src/MyRaycastCallback.cpp
     src/Camera.cpp
@@ -22,6 +22,7 @@ set(SOURCE
 )
 
 set(INCLUDE
+    src/BasicMesh.h
     src/TestScene.hpp
     src/Actor.h
     src/Component.h
@@ -213,6 +214,10 @@ set_source_files_properties(${CUBE} PROPERTIES
     MACOSX_PACKAGE_LOCATION "Resources/models/Cube"
 )
 
+set_source_files_properties(${IMMEUBLE} PROPERTIES
+    VS_DEPLOYMENT_LOCATION "models/Immeubles"
+    MACOSX_PACKAGE_LOCATION "Resources/models/Immeubles"
+)
 #Add C++ Include Directories
 include_directories(${CMAKE_SOURCE_DIR}/ReactPhysics3D/include)
 
@@ -228,3 +233,4 @@ source_group("assets\\models\\MetalRoughSpheres" FILES ${METAL_ROUGH_SPHERES_MOD
 source_group("assets\\models\\NormalTangentTest" FILES ${NORMAL_TANGENT_TEST_MODEL})
 source_group("assets\\models\\Plane" FILES ${PLANE})
 source_group("assets\\models\\Cube" FILES ${CUBE})
+source_group("assets\\models\\Immeubles" FILES ${IMMEUBLE})

@@ -38,6 +38,7 @@
 #include "TextureUtilities.h"
 #include "TexturedCube.hpp"
 #include "Cube.h"
+#include "BasicMesh.h"
 #include "Plane.h"
 #include "imgui.h"
 #include "CollisionComponent.hpp"
@@ -255,7 +256,7 @@ void TestScene::Initialize(const SampleInitInfo& InitInfo)
     _reactPhysic = new ReactPhysic();
 
 
-    ReadFile("TestLevel.txt", varInitInfo);
+    ReadFile("Blockout.txt", varInitInfo);
     int i = 0;
     for (auto actor : actors)
     {
@@ -319,7 +320,15 @@ void TestScene::ReadFile(std::string fileName, const SampleInitInfo& InitInfo)
         //float3 coord = float3(std::stof(xCoord.c_str()), std::stof(yCoord.c_str()), std::stof(zCoord.c_str()));
         float3     coord = float3(std::stof(xCoord), std::stof(yCoord), std::stof(zCoord));
         Quaternion quat  = Quaternion(std::stof(xQuat), std::stof(yQuat), std::stof(zQuat), std::stof(wQuat));
+        if (actorClass == "BasicMesh") {
+            std::string objPath;
+
+            std::getline(test, objPath, ',');
+            log.addInfo(objPath);
+            CreateBasicMesh(objPath.c_str(), InitInfo);
+        }
         CreateAdaptedActor(actorClass, InitInfo);
+        
         actorsPos.emplace_back(coord);
         actorsRot.emplace_back(quat);
         actorsSca.emplace_back(std::stof(scale));
@@ -349,7 +358,26 @@ void TestScene::CollisionComponentCreation(Actor* actor, RigidbodyComponent* rb,
     actor->addComponent(colisionComponent);
 }
 
-void TestScene::CreateAdaptedActor(std::string actorClass, const SampleInitInfo& InitInfo)
+
+void TestScene::CreateBasicMesh(const char* path, const SampleInitInfo& InitInfo) {
+    BasicMesh*                mesh = new BasicMesh(InitInfo, path);
+    float3                    vec(0, 0, 0);
+    reactphysics3d::Transform cubeTransform(reactphysics3d::Vector3(vec.x, vec.y, vec.z), reactphysics3d::Quaternion::identity());
+
+    //rigid body
+    RigidbodyComponent* rbCube = RigidbodyComponentCreation(mesh, cubeTransform, BodyType::STATIC);
+    rbCube->GetRigidBody()->setUserData(rbCube);
+
+    // collision
+    BoxShape* boxShape = _reactPhysic->GetPhysicCommon()->createBoxShape(reactphysics3d::Vector3(1, 1, 1));
+    CollisionComponentCreation(mesh, rbCube, boxShape, cubeTransform);
+    actors.emplace_back(mesh);
+
+
+
+}
+
+    void TestScene::CreateAdaptedActor(std::string actorClass, const SampleInitInfo& InitInfo)
 {
     if (actorClass == "Cube")
     {
@@ -484,6 +512,8 @@ void TestScene::UpdateUI(bool showMidUI)
     if (ImGui::Begin("Level Editor", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
     {
         //index a selectionner avec listbox
+        
+
         std::vector<std::string> indexesName;
         int                      size = (int)actors.size();
         for (int indextemp = 0; indextemp < size; indextemp++)
@@ -558,14 +588,20 @@ void TestScene::UpdateUI(bool showMidUI)
         //Same line String to write + button to create actor
 
         ImGui::InputText("Name of class", nameSelected, IM_ARRAYSIZE(nameSelected));
+        ImGui::InputText("Path of mesh", meshSelected, IM_ARRAYSIZE(meshSelected));
         ImGui::SameLine();
         if (ImGui::Button("Create"))
         {
             std::stringstream ss;
             ss << nameSelected;
             std::string s = ss.str();
-
-            CreateAdaptedActor(s, varInitInfo);
+            if (s == "BasicMesh") {
+                CreateBasicMesh(meshSelected, varInitInfo);
+            }
+            else
+            {
+                CreateAdaptedActor(s, varInitInfo);
+            }
         }
 
         ImGui::NewLine();
@@ -686,6 +722,13 @@ void TestScene::SaveLevel(std::string fileName)
         line += "/";
         float tempScale = actor->getScale();
         line += std::to_string(tempScale);
+        if (actor->getClassName() == "BasicMesh") {
+            line += ",";
+            std::string pathname = static_cast<BasicMesh*>(actor)->getPath();
+            log.addInfo(pathname);
+            
+            line+= pathname;
+        }
         line += "\n";
         file << line;
     }

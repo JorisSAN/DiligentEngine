@@ -61,6 +61,7 @@ public:
     ////// Level editor function
     void ReadFile(std::string fileName, const SampleInitInfo& InitInfo);
     void         CreateAdaptedActor(std::string actorClass, const SampleInitInfo& InitInfo);
+    void         CreateBasicMesh(const char* path, const SampleInitInfo& InitInfo);
     void         SaveLevel(std::string fileName);
     void                UpdateUI(bool showMidUI);
     float3                Unproject(float windowsX, float windowsY,  const float4x4& modelView,const float4x4& projection);
@@ -81,6 +82,7 @@ public:
     int                 indexActors       = -1;
     std::vector<Actor*> actors;
     char               nameSelected[32];
+    char                meshSelected[64];
     char               levelName[32];
     std::vector<float3> actorsPos;
     std::vector<Quaternion> actorsRot;

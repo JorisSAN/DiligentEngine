@@ -16,7 +16,6 @@ public:
     void Initialize(const SampleInitInfo& InitInfo) override;
 
     void setObjectPath(const char* path);
-
     void RenderActor(const Camera& camera, bool IsShadowPass) override;
 
     void UpdateActor(double CurrTime, double ElapsedTime) override;
