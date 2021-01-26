@@ -5,6 +5,7 @@ project(TownRunner CXX)
 set(SOURCE
     src/TestScene.cpp
     src/Actor.cpp
+    src/BasicMesh.cpp
     src/Component.cpp
     src/Camera.cpp
     src/Helmet.cpp
@@ -25,6 +26,8 @@ set(SOURCE
 set(INCLUDE
     src/TestScene.hpp
     src/Actor.h
+    src/LevelLoader.h
+    src/BasicMesh.h
     src/Component.h
     src/Camera.h
     src/Helmet.h

@@ -50,6 +50,11 @@ public:
         Paused,
         Dead
     };
+    
+
+
+
+
 
     Actor();
     Actor(const SampleInitInfo& InitInfo);
@@ -79,7 +84,7 @@ public:
 
     void setScale(float scaleP) { scale = scaleP; }
     void setRotation(Quaternion rotationP) { rotation = rotationP; }
-    void setPosition(float3 positionP) { position = positionP; }
+    void setPosition(float3 positionP);
     void setState(ActorState stateP) { state = stateP; }
 
     Actor* GetActor() { return this; }
@@ -113,5 +118,7 @@ private:
 
     std::vector<Component*> components;
 };
+
+
 
 } // namespace Diligent

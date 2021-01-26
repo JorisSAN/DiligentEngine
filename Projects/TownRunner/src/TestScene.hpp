@@ -58,6 +58,13 @@ public:
     virtual void Render() override final;
     virtual void Update(double CurrTime, double ElapsedTime) override final;
 
+    //Needed when we will implement target actor or else
+    void           CreateAdaptedActor(std::string actorClass, const SampleInitInfo& InitInfo){};
+    //Needed to create basic static mesh of a gltf model 
+    void           CreateBasicMesh(const char* path, const SampleInitInfo& InitInfo,float3 coord);
+    void           SetLastActorTransform(float3 _coord, Quaternion _quat, float _scale);
+
+
     SampleInitInfo getInitInfo() { return Init; }
 
     void removeActor(Actor* actor);
@@ -81,6 +88,8 @@ private:
 
     SampleInitInfo Init;
 
+    
+    
     //React physic 3d
     ReactPhysic* _reactPhysic;
 

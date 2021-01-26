@@ -125,4 +125,18 @@ void Actor::updateComponents(double CurrTime, double ElapsedTime)
     }
 }
 
+
+    
+void Actor::setPosition(float3 positionP) { 
+    position = positionP; 
+    /*
+    for (auto component : components) {
+        std::cout << "test";
+        if ( RigidbodyComponent* test= dynamic_cast<RigidbodyComponent*>(component)) {
+          //  test->SetPosition(reactphysics3d::Vector3(positionP.x, positionP.y, positionP.z));
+        }
+
+    }
+    */
+}
 } // namespace Diligent

@@ -32,9 +32,11 @@
 #include "TestScene.hpp"
 #include "MapHelper.hpp"
 #include "GraphicsUtilities.h"
+#include "LevelLoader.h"
 #include "TextureUtilities.h"
 #include "Sphere.h"
 #include "Helmet.h"
+#include "BasicMesh.h"
 #include "AnimPeople.h"
 #include "InputController.hpp"
 #include "Actor.h"
@@ -73,9 +75,30 @@ void TestScene::Initialize(const SampleInitInfo& InitInfo)
 
     envMaps.reset(new EnvMap(Init, m_BackgroundMode));
 
+    //ReadFile coming from levelLoader
+    ReadFile("Blockout.txt", InitInfo, this);
     ActorCreation();
 }
 
+void TestScene::CreateBasicMesh(const char* path, const SampleInitInfo& InitInfo,float3 coord)
+{
+    BasicMesh*                mesh = new BasicMesh(Init, path,m_BackgroundMode);
+    float3     vec(coord);
+    //need to correct with correct collision probably
+
+    reactphysics3d::Transform cubeTransform(reactphysics3d::Vector3(vec.x, vec.y, vec.z), reactphysics3d::Quaternion::identity());
+
+    //rigid body
+    RigidbodyComponent* rbCube = RigidbodyComponentCreation(mesh, cubeTransform, BodyType::STATIC);
+    //rbCube->GetRigidBody()->setUserData(rbCube);
+  
+    // collision
+    BoxShape* boxShape = _reactPhysic->GetPhysicCommon()->createBoxShape(reactphysics3d::Vector3(1, 1, 1));
+    
+    CollisionComponentCreation(mesh, rbCube, boxShape, cubeTransform);
+
+    actors.emplace_back(mesh);
+}
 void TestScene::ActorCreation()
 {
     //Create actor and their components
@@ -124,7 +147,7 @@ RigidbodyComponent* TestScene::RigidbodyComponentCreation(Actor* actor, reactphy
 void TestScene::CollisionComponentCreation(Actor* actor, RigidbodyComponent* rb, CollisionShape* shape, reactphysics3d::Transform transform)
 {
     CollisionComponent* colisionComponent = new CollisionComponent(actor->GetActor(), shape);
-    colisionComponent->AddCollisionShape(shape);
+    colisionComponent->SetCollisionShape(shape);
     colisionComponent->SetCollider(rb->GetRigidBody()->addCollider(shape, transform));
     actor->addComponent(colisionComponent);
 }
@@ -192,4 +215,10 @@ void TestScene::removeActor(Actor* actor)
     }
 }
 
+void TestScene::SetLastActorTransform(float3 _coord, Quaternion _quat, float _scale) {
+    Actor* actor = actors.back();
+    actor->setPosition(_coord);
+    actor->setRotation(_quat);
+    actor->setScale(_scale);
+}
 } // namespace Diligent
