@@ -6,9 +6,9 @@
 
 using namespace Diligent;
 
-BasicMesh::BasicMesh(const SampleInitInfo& InitInfo, const char* path, BackgroundMode backGround)
+BasicMesh::BasicMesh(const SampleInitInfo& InitInfo, const char* path, BackgroundMode backGround, RefCntAutoPtr<IRenderPass>& RenderPass)
 {
-    GLTFObject::Initialize(InitInfo);
+    GLTFObject::Initialize(InitInfo, RenderPass);
     pathName = path;
     m_BackgroundMode = backGround;
     setObjectPath(path);

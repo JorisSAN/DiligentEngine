@@ -3,15 +3,15 @@
 
 using namespace Diligent;
 
-Plane::Plane(const SampleInitInfo& InitInfo, BackgroundMode backGround) :
-    GLTFObject(InitInfo)
+Plane::Plane(const SampleInitInfo& InitInfo, BackgroundMode backGround, RefCntAutoPtr<IRenderPass>& RenderPass) :
+    GLTFObject(InitInfo, RenderPass)
 {
     setObjectPath("models/DamagedHelmet/DamagedHelmet.gltf");
     m_BackgroundMode = backGround;
 }
 
-Plane::Plane(const SampleInitInfo& InitInfo, BackgroundMode backGroundP, std::string name) :
-    GLTFObject(InitInfo)
+Plane::Plane(const SampleInitInfo& InitInfo, BackgroundMode backGroundP, RefCntAutoPtr<IRenderPass>& RenderPass, std::string name) :
+    GLTFObject(InitInfo, RenderPass)
 {
     setObjectPath("models/Plane/Plane.gltf");
     m_BackgroundMode = backGroundP;

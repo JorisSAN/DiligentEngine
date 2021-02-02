@@ -21,6 +21,9 @@ set(SOURCE
     src/Raycast.cpp
     src/MyRaycastCallback.cpp
     src/ReactEventListener.cpp
+    src/AmbientLight.cpp
+    src/PointLight.cpp
+    src/TexturedCube.cpp
 )
 
 set(INCLUDE
@@ -44,6 +47,9 @@ set(INCLUDE
     src/Raycast.h
     src/MyRaycastCallback.h
     src/ReactEventListener.h
+    src/AmbientLight.h
+    src/PointLight.h
+    src/TexturedCube.hpp
 )
 
 set(SHADERS
@@ -53,6 +59,14 @@ set(SHADERS
     assets/shaders/env_map.psh
     assets/shaders/MeshVS.vsh
     assets/shaders/MeshPS.psh
+    assets/light_volume.vsh
+    assets/light_volume_glsl.psh
+    assets/light_volume_hlsl.psh
+    assets/ambient_light.vsh
+    assets/ambient_light_glsl.psh
+    assets/ambient_light_hlsl.psh
+    assets/cube.vsh
+    assets/cube.psh
 )
 
 set(EXTERNAL_SHADERS

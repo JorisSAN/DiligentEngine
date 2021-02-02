@@ -37,6 +37,8 @@
 #include "ReactPhysic.hpp"
 #include "Component.h"
 #include "RigidbodyComponent.hpp"
+#include "AmbientLight.h"
+#include "PointLight.h"
 
 namespace Diligent
 {
@@ -73,6 +75,12 @@ public:
     virtual const Char* GetSampleName() const override final { return "Scene"; }
 
 private:
+    // Use 16-bit format to make sure it works on mobile devices
+    static constexpr TEXTURE_FORMAT DepthBufferFormat = TEX_FORMAT_D32_FLOAT;
+
+    RefCntAutoPtr<IRenderPass> m_pRenderPass;
+
+    std::unordered_map<ITextureView*, RefCntAutoPtr<IFramebuffer>> m_FramebufferCache;
     //Attributes 
     RefCntAutoPtr<IBuffer> m_CameraAttribsCB;
 
@@ -84,7 +92,13 @@ private:
 
     std::vector<Actor*> actors;
 
-    std::unique_ptr<EnvMap> envMaps;
+    std::unique_ptr<EnvMap>       envMaps;
+    std::unique_ptr<AmbientLight> ambientlight;
+    std::vector<PointLight*>      lights;
+
+    RefCntAutoPtr<ITexture> ColorBuffer;
+    RefCntAutoPtr<ITexture> DepthZBuffer;
+    RefCntAutoPtr<IShaderSourceInputStreamFactory> pShaderSourceFactory;
 
     SampleInitInfo Init;
 
@@ -97,7 +111,10 @@ private:
     //Functions
     void ActorCreation();
     RigidbodyComponent* RigidbodyComponentCreation(Actor* actor, reactphysics3d::Transform transform, BodyType type = BodyType::DYNAMIC);
-    void CollisionComponentCreation(Actor* actor, RigidbodyComponent* rb, CollisionShape* shape, reactphysics3d::Transform transform);
+    void                CollisionComponentCreation(Actor* actor, RigidbodyComponent* rb, CollisionShape* shape, reactphysics3d::Transform transform);
+    void                CreateRenderPass();
+    RefCntAutoPtr<IFramebuffer> CreateFramebuffer(ITextureView* pDstRenderTarget);
+    IFramebuffer*               GetCurrentFramebuffer();
 };
 
 } // namespace Diligent
