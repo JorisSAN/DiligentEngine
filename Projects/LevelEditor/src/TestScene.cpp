@@ -91,7 +91,7 @@ float3 TestScene::Unproject(float windowsX, float windowsY, const float4x4& mode
     float mouseX    = windowsX / (winWidth * 0.5f) - 1.0f;
     float mouseY    = windowsY / (winHeight * 0.5f) - 1.0f;
 
-    float4x4 proj  = m_Camera.GetViewMatrix();
+    float4x4 proj  = m_Camera.GetProjMatrix();
     float4x4 view  = m_Camera.GetViewMatrix();
     float4x4 invVP = (proj * view);
     invVP.Inverse();
@@ -111,7 +111,8 @@ float3 TestScene::Unproject(float windowsX, float windowsY, const float4x4& mode
     message            = "worldPos :" + std::to_string(screenPos.x) + " " + std::to_string(screenPos.y) + " " + std::to_string(screenPos.z) + " ";
     log.addInfo(message);
 
-    float3   dir       = normalize(worldPos);
+    float3   dir       = worldPos;
+    dir        = normalize(dir);
     
     return dir;
     /*
@@ -256,7 +257,7 @@ void TestScene::Initialize(const SampleInitInfo& InitInfo)
     _reactPhysic = new ReactPhysic();
 
 
-    ReadFile("Blockout.txt", varInitInfo);
+    ReadFile("BlockoutRemake.txt", varInitInfo);
     int i = 0;
     for (auto actor : actors)
     {
@@ -772,7 +773,12 @@ void TestScene::Update(double CurrTime, double ElapsedTime)
         //lineSeg.end -= m_Camera.GetPos();
         float3                  cameraPosition = m_Camera.GetPos();
         lineSeg.start         = cameraPosition;
-        lineSeg.end      = cameraPosition + rayDirection * 500;
+        
+        
+        
+        lineSeg.end      = cameraPosition + rayDirection * 20;
+        
+        
         reactphysics3d::Vector3 vec(lineSeg.start.x, lineSeg.start.y, lineSeg.start.z);
         reactphysics3d::Vector3 vec2(lineSeg.end.x,lineSeg.end.y, lineSeg.end.z);
        

@@ -218,6 +218,12 @@ set_source_files_properties(${IMMEUBLE} PROPERTIES
     VS_DEPLOYMENT_LOCATION "models/Immeubles"
     MACOSX_PACKAGE_LOCATION "Resources/models/Immeubles"
 )
+
+set_source_files_properties(${IMMEUBLETEST} PROPERTIES
+    VS_DEPLOYMENT_LOCATION "models/Immeubles/v2test"
+    MACOSX_PACKAGE_LOCATION "Resources/models/Immeubles/v2test"
+)
+
 #Add C++ Include Directories
 include_directories(${CMAKE_SOURCE_DIR}/ReactPhysics3D/include)
 
@@ -234,3 +240,4 @@ source_group("assets\\models\\NormalTangentTest" FILES ${NORMAL_TANGENT_TEST_MOD
 source_group("assets\\models\\Plane" FILES ${PLANE})
 source_group("assets\\models\\Cube" FILES ${CUBE})
 source_group("assets\\models\\Immeubles" FILES ${IMMEUBLE})
+source_group("assets\\models\\Immeubles\\v2test" FILES ${IMMEUBLETEST})
