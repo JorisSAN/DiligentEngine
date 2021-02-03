@@ -63,10 +63,15 @@ EnvMap::EnvMap()
 
 }
 
-EnvMap::EnvMap(const SampleInitInfo& InitInfo, BackgroundMode BackgroundMode):
+EnvMap::EnvMap(const SampleInitInfo& InitInfo, BackgroundMode BackgroundMode, RefCntAutoPtr<IRenderPass>& RenderPass) :
+    m_pRenderPass(RenderPass),
     m_BackgroundMode(BackgroundMode)
 {
     Initialize(InitInfo);
+}
+
+EnvMap::~EnvMap()
+{
 }
 
 void EnvMap::Initialize(const SampleInitInfo& InitInfo)
@@ -86,7 +91,6 @@ void EnvMap::Initialize(const SampleInitInfo& InitInfo)
     RendererCI.AllowDebugView = true;
     RendererCI.UseIBL         = true;
     RendererCI.FrontCCW       = true;
-    m_GLTFRenderer.reset(new GLTF_PBR_Renderer(m_pDevice, m_pImmediateContext, RendererCI));
 
     CreateUniformBuffer(m_pDevice, sizeof(CameraAttribs), "Camera attribs buffer", &m_VertexBuffer);
     CreateUniformBuffer(m_pDevice, sizeof(LightAttribs), "Light attribs buffer", &m_VSConstants);
@@ -101,8 +105,6 @@ void EnvMap::Initialize(const SampleInitInfo& InitInfo)
     };
     // clang-format on
     m_pImmediateContext->TransitionResourceStates(_countof(Barriers), Barriers);
-
-    m_GLTFRenderer->PrecomputeCubemaps(m_pDevice, m_pImmediateContext, m_TextureSRV);
 
     CreatePSO();
 }
@@ -163,6 +165,9 @@ void EnvMap::CreatePSO()
     PSOCreateInfo.pVS = pVS;
     PSOCreateInfo.pPS = pPS;
 
+    GraphicsPipeline.pRenderPass  = m_pRenderPass;
+    GraphicsPipeline.SubpassIndex = 1; // This PSO will be used within the second subpass
+
     GraphicsPipeline.RTVFormats[0]              = m_pSwapChain->GetDesc().ColorBufferFormat;
     GraphicsPipeline.NumRenderTargets           = 1;
     GraphicsPipeline.DSVFormat                  = m_pSwapChain->GetDesc().DepthBufferFormat;
@@ -187,15 +192,6 @@ void EnvMap::CreateVertexBuffer()
             case BackgroundMode::EnvironmentMap:
                 pEnvMapSRV = m_TextureSRV;
                 break;
-
-            case BackgroundMode::Irradiance:
-                pEnvMapSRV = m_GLTFRenderer->GetIrradianceCubeSRV();
-                break;
-
-            case BackgroundMode::PrefilteredEnvMap:
-                pEnvMapSRV = m_GLTFRenderer->GetPrefilteredEnvMapSRV();
-                break;
-
             default:
                 UNEXPECTED("Unexpected background mode");
         }
@@ -206,7 +202,6 @@ void EnvMap::CreateVertexBuffer()
 // Render a frame
 void EnvMap::RenderActor(const Camera& camera, bool IsShadowPass)
 {
-
     // Get pretransform matrix that rotates the scene according the surface orientation
     auto SrfPreTransform = GetSurfacePretransformMatrix(float3{0, 0, 1});
 
@@ -240,6 +235,12 @@ void EnvMap::RenderActor(const Camera& camera, bool IsShadowPass)
             EnvMapAttribs->AverageLogLum                  = m_RenderParams.AverageLogLum;
             EnvMapAttribs->MipLevel                       = m_EnvMapMipLevel;
         }
+        // Bind vertex and index buffers
+        Uint32   offset   = 0;
+        IBuffer* pBuffs[] = {m_VertexBuffer};
+        // Note that RESOURCE_STATE_TRANSITION_MODE_TRANSITION are not allowed inside render pass!
+        m_pImmediateContext->SetVertexBuffers(0, 1, pBuffs, &offset, RESOURCE_STATE_TRANSITION_MODE_VERIFY, SET_VERTEX_BUFFERS_FLAG_RESET);
+        m_pImmediateContext->SetIndexBuffer(m_IndexBuffer, 0, RESOURCE_STATE_TRANSITION_MODE_VERIFY);
         m_pImmediateContext->SetPipelineState(m_pPSO);
         m_pImmediateContext->CommitShaderResources(m_SRB, RESOURCE_STATE_TRANSITION_MODE_VERIFY);
         DrawAttribs drawAttribs(3, DRAW_FLAG_VERIFY_ALL);

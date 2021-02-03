@@ -12,9 +12,9 @@ class GLTFObject : public Actor
 {
 public:
     GLTFObject();
-    GLTFObject(const SampleInitInfo& InitInfo);
+    GLTFObject(const SampleInitInfo& InitInfo, RefCntAutoPtr<IRenderPass>& RenderPass);
 
-    void Initialize(const SampleInitInfo& InitInfo) override;
+    void Initialize(const SampleInitInfo& InitInfo, RefCntAutoPtr<IRenderPass>& RenderPass);
 
     void setObjectPath(const char* path);
 
@@ -26,6 +26,7 @@ protected:
     const char* path;
 
     BackgroundMode m_BackgroundMode = BackgroundMode::EnvironmentMap;
+    RefCntAutoPtr<IRenderPass> m_pRenderPass;
 
 private:
     void LoadModel(const char* Path);

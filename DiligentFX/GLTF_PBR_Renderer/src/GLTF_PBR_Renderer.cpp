@@ -45,8 +45,10 @@ const SamplerDesc GLTF_PBR_Renderer::CreateInfo::DefaultSampler = Sam_LinearWrap
 
 GLTF_PBR_Renderer::GLTF_PBR_Renderer(IRenderDevice*    pDevice,
                                      IDeviceContext*   pCtx,
-                                     const CreateInfo& CI) :
-    m_Settings{CI}
+                                     const CreateInfo&           CI,
+                                     RefCntAutoPtr<IRenderPass>& pRenderPass) :
+    m_Settings{CI},
+    m_pRenderPass{pRenderPass}
 {
     if (m_Settings.UseIBL)
     {
@@ -167,11 +169,14 @@ void GLTF_PBR_Renderer::PrecomputeBRDF(IRenderDevice*  pDevice,
         PSODesc.Name         = "Precompute GLTF BRDF LUT PSO";
         PSODesc.PipelineType = PIPELINE_TYPE_GRAPHICS;
 
-        GraphicsPipeline.NumRenderTargets             = 1;
+        GraphicsPipeline.pRenderPass  = m_pRenderPass;
+        GraphicsPipeline.SubpassIndex = 0; // This PSO will be used within the second subpass
+
+        GraphicsPipeline.NumRenderTargets             = 0;
         GraphicsPipeline.RTVFormats[0]                = TexDesc.Format;
         GraphicsPipeline.PrimitiveTopology            = PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
         GraphicsPipeline.RasterizerDesc.CullMode      = CULL_MODE_NONE;
-        GraphicsPipeline.DepthStencilDesc.DepthEnable = False;
+        GraphicsPipeline.DepthStencilDesc.DepthEnable = True;
 
         ShaderCreateInfo ShaderCI;
         ShaderCI.SourceLanguage             = SHADER_SOURCE_LANGUAGE_HLSL;
@@ -204,8 +209,8 @@ void GLTF_PBR_Renderer::PrecomputeBRDF(IRenderDevice*  pDevice,
     pCtx->SetPipelineState(PrecomputeBRDF_PSO);
 
     ITextureView* pRTVs[] = {pBRDF_LUT->GetDefaultView(TEXTURE_VIEW_RENDER_TARGET)};
-    pCtx->SetRenderTargets(1, pRTVs, nullptr, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
-    DrawAttribs attrs(3, DRAW_FLAG_VERIFY_ALL);
+    pCtx->SetRenderTargets(1, pRTVs, nullptr, RESOURCE_STATE_TRANSITION_MODE_VERIFY);
+    DrawAttribs attrs(4, DRAW_FLAG_VERIFY_ALL);
     pCtx->Draw(attrs);
 
     // clang-format off
@@ -226,12 +231,16 @@ void GLTF_PBR_Renderer::CreatePSO(IRenderDevice* pDevice)
     PSODesc.Name         = "Render GLTF PBR PSO";
     PSODesc.PipelineType = PIPELINE_TYPE_GRAPHICS;
 
-    GraphicsPipeline.NumRenderTargets                     = 1;
+    GraphicsPipeline.pRenderPass  = m_pRenderPass;
+    GraphicsPipeline.SubpassIndex = 0; // This PSO will be used within the second subpass
+
+    GraphicsPipeline.NumRenderTargets                     = 0;
     GraphicsPipeline.RTVFormats[0]                        = m_Settings.RTVFmt;
     GraphicsPipeline.DSVFormat                            = m_Settings.DSVFmt;
     GraphicsPipeline.PrimitiveTopology                    = PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     GraphicsPipeline.RasterizerDesc.CullMode              = CULL_MODE_BACK;
     GraphicsPipeline.RasterizerDesc.FrontCounterClockwise = m_Settings.FrontCCW;
+    GraphicsPipeline.DepthStencilDesc.DepthEnable         = True;
 
     ShaderCreateInfo ShaderCI;
     ShaderCI.SourceLanguage             = SHADER_SOURCE_LANGUAGE_HLSL;
@@ -536,7 +545,7 @@ void GLTF_PBR_Renderer::PrecomputeCubemaps(IRenderDevice*  pDevice,
         GraphicsPipeline.RTVFormats[0]                = IrradianceCubeFmt;
         GraphicsPipeline.PrimitiveTopology            = PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
         GraphicsPipeline.RasterizerDesc.CullMode      = CULL_MODE_NONE;
-        GraphicsPipeline.DepthStencilDesc.DepthEnable = False;
+        GraphicsPipeline.DepthStencilDesc.DepthEnable = True;
 
         PSOCreateInfo.pVS = pVS;
         PSOCreateInfo.pPS = pPS;
@@ -606,7 +615,7 @@ void GLTF_PBR_Renderer::PrecomputeCubemaps(IRenderDevice*  pDevice,
         GraphicsPipeline.RTVFormats[0]                = PrefilteredEnvMapFmt;
         GraphicsPipeline.PrimitiveTopology            = PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
         GraphicsPipeline.RasterizerDesc.CullMode      = CULL_MODE_NONE;
-        GraphicsPipeline.DepthStencilDesc.DepthEnable = False;
+        GraphicsPipeline.DepthStencilDesc.DepthEnable = True;
 
         PSOCreateInfo.pVS = pVS;
         PSOCreateInfo.pPS = pPS;
@@ -651,7 +660,7 @@ void GLTF_PBR_Renderer::PrecomputeCubemaps(IRenderDevice*  pDevice,
 
     pCtx->SetPipelineState(m_pPrecomputeIrradianceCubePSO);
     m_pPrecomputeIrradianceCubeSRB->GetVariableByName(SHADER_TYPE_PIXEL, "g_EnvironmentMap")->Set(pEnvironmentMap);
-    pCtx->CommitShaderResources(m_pPrecomputeIrradianceCubeSRB, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+    pCtx->CommitShaderResources(m_pPrecomputeIrradianceCubeSRB, RESOURCE_STATE_TRANSITION_MODE_VERIFY);
     auto*       pIrradianceCube    = m_pIrradianceCubeSRV->GetTexture();
     const auto& IrradianceCubeDesc = pIrradianceCube->GetDesc();
     for (Uint32 mip = 0; mip < IrradianceCubeDesc.MipLevels; ++mip)
@@ -666,7 +675,7 @@ void GLTF_PBR_Renderer::PrecomputeCubemaps(IRenderDevice*  pDevice,
             RefCntAutoPtr<ITextureView> pRTV;
             pIrradianceCube->CreateView(RTVDesc, &pRTV);
             ITextureView* ppRTVs[] = {pRTV};
-            pCtx->SetRenderTargets(_countof(ppRTVs), ppRTVs, nullptr, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+            pCtx->SetRenderTargets(_countof(ppRTVs), ppRTVs, nullptr, RESOURCE_STATE_TRANSITION_MODE_VERIFY);
             {
                 MapHelper<PrecomputeEnvMapAttribs> Attribs(pCtx, m_PrecomputeEnvMapAttribsCB, MAP_WRITE, MAP_FLAG_DISCARD);
                 Attribs->Rotation = Matrices[face];
@@ -678,7 +687,7 @@ void GLTF_PBR_Renderer::PrecomputeCubemaps(IRenderDevice*  pDevice,
 
     pCtx->SetPipelineState(m_pPrefilterEnvMapPSO);
     m_pPrefilterEnvMapSRB->GetVariableByName(SHADER_TYPE_PIXEL, "g_EnvironmentMap")->Set(pEnvironmentMap);
-    pCtx->CommitShaderResources(m_pPrefilterEnvMapSRB, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+    pCtx->CommitShaderResources(m_pPrefilterEnvMapSRB, RESOURCE_STATE_TRANSITION_MODE_VERIFY);
     auto*       pPrefilteredEnvMap    = m_pPrefilteredEnvMapSRV->GetTexture();
     const auto& PrefilteredEnvMapDesc = pPrefilteredEnvMap->GetDesc();
     for (Uint32 mip = 0; mip < PrefilteredEnvMapDesc.MipLevels; ++mip)
@@ -693,7 +702,7 @@ void GLTF_PBR_Renderer::PrecomputeCubemaps(IRenderDevice*  pDevice,
             RefCntAutoPtr<ITextureView> pRTV;
             pPrefilteredEnvMap->CreateView(RTVDesc, &pRTV);
             ITextureView* ppRTVs[] = {pRTV};
-            pCtx->SetRenderTargets(_countof(ppRTVs), ppRTVs, nullptr, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+            pCtx->SetRenderTargets(_countof(ppRTVs), ppRTVs, nullptr, RESOURCE_STATE_TRANSITION_MODE_VERIFY);
 
             {
                 MapHelper<PrecomputeEnvMapAttribs> Attribs(pCtx, m_PrecomputeEnvMapAttribsCB, MAP_WRITE, MAP_FLAG_DISCARD);
@@ -923,10 +932,10 @@ void GLTF_PBR_Renderer::Render(IDeviceContext*                                pC
     {
         IBuffer* pVBs[]                  = {GLTFModel.pVertexBuffer[0], GLTFModel.pVertexBuffer[1]};
         Uint32   Offsets[_countof(pVBs)] = {};
-        pCtx->SetVertexBuffers(0, _countof(pVBs), pVBs, Offsets, RESOURCE_STATE_TRANSITION_MODE_TRANSITION, SET_VERTEX_BUFFERS_FLAG_RESET);
+        pCtx->SetVertexBuffers(0, _countof(pVBs), pVBs, Offsets, RESOURCE_STATE_TRANSITION_MODE_VERIFY, SET_VERTEX_BUFFERS_FLAG_RESET);
         if (GLTFModel.pIndexBuffer)
         {
-            pCtx->SetIndexBuffer(GLTFModel.pIndexBuffer, 0, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+            pCtx->SetIndexBuffer(GLTFModel.pIndexBuffer, 0, RESOURCE_STATE_TRANSITION_MODE_VERIFY);
         }
     }
     else

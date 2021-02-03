@@ -9,9 +9,9 @@ namespace Diligent
 class Plane : public GLTFObject
 {
 public:
-    Plane(const SampleInitInfo& InitInfo, BackgroundMode backGround);
+    Plane(const SampleInitInfo& InitInfo, BackgroundMode backGround, RefCntAutoPtr<IRenderPass>& RenderPass);
 
-    Plane(const SampleInitInfo& InitInfo, BackgroundMode backGroundP, std::string name);
+    Plane(const SampleInitInfo& InitInfo, BackgroundMode backGroundP, RefCntAutoPtr<IRenderPass>& RenderPass, std::string name);
 
     void UpdateActor(double CurrTime, double ElapsedTime) override;
 

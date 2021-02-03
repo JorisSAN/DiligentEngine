@@ -64,9 +64,9 @@ GLTFObject::GLTFObject()
 
 }
 
-GLTFObject::GLTFObject(const SampleInitInfo& InitInfo)
+GLTFObject::GLTFObject(const SampleInitInfo& InitInfo, RefCntAutoPtr<IRenderPass>& RenderPass)
 {
-    Initialize(InitInfo);
+    Initialize(InitInfo, RenderPass);
 }
 
 void GLTFObject::LoadModel(const char* Path)
@@ -101,9 +101,11 @@ void GLTFObject::LoadModel(const char* Path)
     }
 }
 
-void GLTFObject::Initialize(const SampleInitInfo& InitInfo)
+void GLTFObject::Initialize(const SampleInitInfo& InitInfo, RefCntAutoPtr<IRenderPass>& RenderPass)
 {
     SampleBase::Initialize(InitInfo);
+
+    m_pRenderPass = RenderPass;
 
     RefCntAutoPtr<ITexture> EnvironmentMap;
     CreateTextureFromFile("textures/papermill.ktx", TextureLoadInfo{"Environment map"}, m_pDevice, &EnvironmentMap);
@@ -118,7 +120,7 @@ void GLTFObject::Initialize(const SampleInitInfo& InitInfo)
     RendererCI.AllowDebugView = true;
     RendererCI.UseIBL         = true;
     RendererCI.FrontCCW       = true;
-    m_GLTFRenderer.reset(new GLTF_PBR_Renderer(m_pDevice, m_pImmediateContext, RendererCI));
+    m_GLTFRenderer.reset(new GLTF_PBR_Renderer(m_pDevice, m_pImmediateContext, RendererCI, m_pRenderPass));
 
     CreateUniformBuffer(m_pDevice, sizeof(CameraAttribs), "Camera attribs buffer", &m_VertexBuffer);
     CreateUniformBuffer(m_pDevice, sizeof(LightAttribs), "Light attribs buffer", &m_VSConstants);

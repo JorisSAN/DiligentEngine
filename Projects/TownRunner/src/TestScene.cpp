@@ -56,6 +56,8 @@ void TestScene::GetEngineInitializationAttribs(RENDER_DEVICE_TYPE DeviceType, En
     SampleBase::GetEngineInitializationAttribs(DeviceType, EngineCI, SCDesc);
 
     EngineCI.Features.DepthClamp = DEVICE_FEATURE_STATE_OPTIONAL;
+    // We do not need the depth buffer from the swap chain in this sample
+    SCDesc.DepthBufferFormat = TEX_FORMAT_UNKNOWN;
 }
 
 void TestScene::Initialize(const SampleInitInfo& InitInfo)
@@ -67,22 +69,228 @@ void TestScene::Initialize(const SampleInitInfo& InitInfo)
 
     Init = InitInfo;
 
+    CreateRenderPass();
+
     m_Camera.SetPos(float3(5.0f, 0.0f, 0.0f));
     m_Camera.SetRotation(PI_F / 2.f, 0, 0);
     m_Camera.SetRotationSpeed(0.005f);
     m_Camera.SetMoveSpeed(5.f);
     m_Camera.SetSpeedUpScales(5.f, 10.f);
 
-    envMaps.reset(new EnvMap(Init, m_BackgroundMode));
+    m_pEngineFactory->CreateDefaultShaderSourceStreamFactory(nullptr, &pShaderSourceFactory);
+
+    envMaps.reset(new EnvMap(Init, m_BackgroundMode, m_pRenderPass));
+
+    ambientlight.reset(new AmbientLight(Init, m_pRenderPass, pShaderSourceFactory));
 
     //ReadFile coming from levelLoader
     ReadFile("Blockout.txt", InitInfo, this);
     ActorCreation();
 }
 
+void TestScene::CreateRenderPass()
+{
+    // Attachment 0 - Color buffer
+    // Attachment 1 - Depth Z
+    // Attachment 2 - Depth buffer
+    // Attachment 3 - Final color buffer
+    constexpr Uint32 NumAttachments = 4;
+
+    // Prepare render pass attachment descriptions
+    RenderPassAttachmentDesc Attachments[NumAttachments];
+    Attachments[0].Format       = TEX_FORMAT_RGBA8_UNORM;
+    Attachments[0].InitialState = RESOURCE_STATE_RENDER_TARGET;
+    Attachments[0].FinalState   = RESOURCE_STATE_INPUT_ATTACHMENT;
+    Attachments[0].LoadOp       = ATTACHMENT_LOAD_OP_CLEAR;
+    Attachments[0].StoreOp      = ATTACHMENT_STORE_OP_DISCARD; // We will not need the result after the end of the render pass
+
+    Attachments[1].Format       = TEX_FORMAT_R32_FLOAT;
+    Attachments[1].InitialState = RESOURCE_STATE_RENDER_TARGET;
+    Attachments[1].FinalState   = RESOURCE_STATE_INPUT_ATTACHMENT;
+    Attachments[1].LoadOp       = ATTACHMENT_LOAD_OP_CLEAR;
+    Attachments[1].StoreOp      = ATTACHMENT_STORE_OP_DISCARD; // We will not need the result after the end of the render pass
+
+    Attachments[2].Format       = DepthBufferFormat;
+    Attachments[2].InitialState = RESOURCE_STATE_DEPTH_WRITE;
+    Attachments[2].FinalState   = RESOURCE_STATE_DEPTH_WRITE;
+    Attachments[2].LoadOp       = ATTACHMENT_LOAD_OP_CLEAR;
+    Attachments[2].StoreOp      = ATTACHMENT_STORE_OP_DISCARD; // We will not need the result after the end of the render pass
+
+    Attachments[3].Format       = m_pSwapChain->GetDesc().ColorBufferFormat;
+    Attachments[3].InitialState = RESOURCE_STATE_RENDER_TARGET;
+    Attachments[3].FinalState   = RESOURCE_STATE_RENDER_TARGET;
+    Attachments[3].LoadOp       = ATTACHMENT_LOAD_OP_CLEAR;
+    Attachments[3].StoreOp      = ATTACHMENT_STORE_OP_STORE;
+
+    // Subpass 1 - Render G-buffer
+    // Subpass 2 - Lighting
+    constexpr Uint32 NumSubpasses = 2;
+
+    // Prepar subpass descriptions
+    SubpassDesc Subpasses[NumSubpasses];
+
+    // clang-format off
+    // Subpass 0 attachments - 2 render targets and depth buffer
+    AttachmentReference RTAttachmentRefs0[] =
+    {
+        {0, RESOURCE_STATE_RENDER_TARGET},
+        {1, RESOURCE_STATE_RENDER_TARGET}
+    };
+
+    AttachmentReference DepthAttachmentRef0 = {2, RESOURCE_STATE_DEPTH_WRITE};
+
+    // Subpass 1 attachments - 1 render target, depth buffer, 2 input attachments
+    AttachmentReference RTAttachmentRefs1[] =
+    {
+        {3, RESOURCE_STATE_RENDER_TARGET}
+    };
+
+    AttachmentReference DepthAttachmentRef1 = {2, RESOURCE_STATE_DEPTH_WRITE};
+
+    AttachmentReference InputAttachmentRefs1[] =
+    {
+        {0, RESOURCE_STATE_INPUT_ATTACHMENT},
+        {1, RESOURCE_STATE_INPUT_ATTACHMENT}
+    };
+    // clang-format on
+
+    Subpasses[0].RenderTargetAttachmentCount = _countof(RTAttachmentRefs0);
+    Subpasses[0].pRenderTargetAttachments    = RTAttachmentRefs0;
+    Subpasses[0].pDepthStencilAttachment     = &DepthAttachmentRef0;
+
+    Subpasses[1].RenderTargetAttachmentCount = _countof(RTAttachmentRefs1);
+    Subpasses[1].pRenderTargetAttachments    = RTAttachmentRefs1;
+    Subpasses[1].pDepthStencilAttachment     = &DepthAttachmentRef1;
+    Subpasses[1].InputAttachmentCount        = _countof(InputAttachmentRefs1);
+    Subpasses[1].pInputAttachments           = InputAttachmentRefs1;
+
+    // We need to define dependency between subpasses 0 and 1 to ensure that
+    // all writes are complete before we use the attachments for input in subpass 1.
+    SubpassDependencyDesc Dependencies[1];
+    Dependencies[0].SrcSubpass    = 0;
+    Dependencies[0].DstSubpass    = 1;
+    Dependencies[0].SrcStageMask  = PIPELINE_STAGE_FLAG_RENDER_TARGET;
+    Dependencies[0].DstStageMask  = PIPELINE_STAGE_FLAG_PIXEL_SHADER;
+    Dependencies[0].SrcAccessMask = ACCESS_FLAG_RENDER_TARGET_WRITE;
+    Dependencies[0].DstAccessMask = ACCESS_FLAG_SHADER_READ;
+
+    RenderPassDesc RPDesc;
+    RPDesc.Name            = "Deferred shading render pass desc";
+    RPDesc.AttachmentCount = _countof(Attachments);
+    RPDesc.pAttachments    = Attachments;
+    RPDesc.SubpassCount    = _countof(Subpasses);
+    RPDesc.pSubpasses      = Subpasses;
+    RPDesc.DependencyCount = _countof(Dependencies);
+    RPDesc.pDependencies   = Dependencies;
+
+    m_pDevice->CreateRenderPass(RPDesc, &m_pRenderPass);
+    VERIFY_EXPR(m_pRenderPass != nullptr);
+}
+
+RefCntAutoPtr<IFramebuffer> TestScene::CreateFramebuffer(ITextureView* pDstRenderTarget)
+{
+    const auto& RPDesc = m_pRenderPass->GetDesc();
+    const auto& SCDesc = m_pSwapChain->GetDesc();
+    // Create window-size offscreen render target
+    TextureDesc TexDesc;
+    TexDesc.Name      = "Color G-buffer";
+    TexDesc.Type      = RESOURCE_DIM_TEX_2D;
+    TexDesc.BindFlags = BIND_RENDER_TARGET | BIND_INPUT_ATTACHMENT;
+    TexDesc.Format    = RPDesc.pAttachments[0].Format;
+    TexDesc.Width     = SCDesc.Width;
+    TexDesc.Height    = SCDesc.Height;
+    TexDesc.MipLevels = 1;
+
+    // Define optimal clear value
+    TexDesc.ClearValue.Format   = TexDesc.Format;
+    TexDesc.ClearValue.Color[0] = 0.f;
+    TexDesc.ClearValue.Color[1] = 0.f;
+    TexDesc.ClearValue.Color[2] = 0.f;
+    TexDesc.ClearValue.Color[3] = 0.f;
+    RefCntAutoPtr<ITexture> pColorBuffer;
+    m_pDevice->CreateTexture(TexDesc, nullptr, &pColorBuffer);
+
+    // OpenGL does not allow combining swap chain render target with any
+    // other render target, so we have to create an auxiliary texture.
+    RefCntAutoPtr<ITexture> pOpenGLOffsreenColorBuffer;
+    if (pDstRenderTarget == nullptr)
+    {
+        TexDesc.Name   = "OpenGL Offscreen Render Target";
+        TexDesc.Format = SCDesc.ColorBufferFormat;
+        m_pDevice->CreateTexture(TexDesc, nullptr, &pOpenGLOffsreenColorBuffer);
+        pDstRenderTarget = pOpenGLOffsreenColorBuffer->GetDefaultView(TEXTURE_VIEW_RENDER_TARGET);
+    }
+
+
+    TexDesc.Name   = "Depth Z G-buffer";
+    TexDesc.Format = RPDesc.pAttachments[1].Format;
+
+    TexDesc.ClearValue.Format   = TexDesc.Format;
+    TexDesc.ClearValue.Color[0] = 1.f;
+    TexDesc.ClearValue.Color[1] = 1.f;
+    TexDesc.ClearValue.Color[2] = 1.f;
+    TexDesc.ClearValue.Color[3] = 1.f;
+    RefCntAutoPtr<ITexture> pDepthZBuffer;
+    m_pDevice->CreateTexture(TexDesc, nullptr, &pDepthZBuffer);
+
+
+    TexDesc.Name      = "Depth buffer";
+    TexDesc.Format    = RPDesc.pAttachments[2].Format;
+    TexDesc.BindFlags = BIND_DEPTH_STENCIL;
+
+    TexDesc.ClearValue.Format               = TexDesc.Format;
+    TexDesc.ClearValue.DepthStencil.Depth   = 1.f;
+    TexDesc.ClearValue.DepthStencil.Stencil = 0;
+    RefCntAutoPtr<ITexture> pDepthBuffer;
+    m_pDevice->CreateTexture(TexDesc, nullptr, &pDepthBuffer);
+
+
+    ITextureView* pAttachments[] = //
+        {
+            pColorBuffer->GetDefaultView(TEXTURE_VIEW_RENDER_TARGET),
+            pDepthZBuffer->GetDefaultView(TEXTURE_VIEW_RENDER_TARGET),
+            pDepthBuffer->GetDefaultView(TEXTURE_VIEW_DEPTH_STENCIL),
+            pDstRenderTarget //
+        };
+
+    FramebufferDesc FBDesc;
+    FBDesc.Name            = "G-buffer framebuffer";
+    FBDesc.pRenderPass     = m_pRenderPass;
+    FBDesc.AttachmentCount = _countof(pAttachments);
+    FBDesc.ppAttachments   = pAttachments;
+
+    RefCntAutoPtr<IFramebuffer> pFramebuffer;
+    m_pDevice->CreateFramebuffer(FBDesc, &pFramebuffer);
+    VERIFY_EXPR(pFramebuffer != nullptr);
+
+    ColorBuffer  = pColorBuffer;
+    DepthZBuffer = pDepthZBuffer;
+
+    return pFramebuffer;
+}
+
+IFramebuffer* TestScene::GetCurrentFramebuffer()
+{
+    auto* pCurrentBackBufferRTV = m_pDevice->GetDeviceCaps().IsGLDevice() ?
+        nullptr :
+        m_pSwapChain->GetCurrentBackBufferRTV();
+
+    auto fb_it = m_FramebufferCache.find(pCurrentBackBufferRTV);
+    if (fb_it != m_FramebufferCache.end())
+    {
+        return fb_it->second;
+    }
+    else
+    {
+        auto it = m_FramebufferCache.emplace(pCurrentBackBufferRTV, CreateFramebuffer(pCurrentBackBufferRTV));
+        VERIFY_EXPR(it.second);
+        return it.first->second;
+    }
+}
+
 void TestScene::CreateBasicMesh(const char* path, const SampleInitInfo& InitInfo,float3 coord)
 {
-    BasicMesh*                mesh = new BasicMesh(Init, path,m_BackgroundMode);
+    BasicMesh* mesh = new BasicMesh(Init, path, m_BackgroundMode, m_pRenderPass);
     float3     vec(coord);
     //need to correct with correct collision probably
 
@@ -99,11 +307,12 @@ void TestScene::CreateBasicMesh(const char* path, const SampleInitInfo& InitInfo
 
     actors.emplace_back(mesh);
 }
+
 void TestScene::ActorCreation()
 {
     //Create actor and their components
     //Create Helmet
-    Helmet*                    helmet1 = new Helmet(Init, m_BackgroundMode, "helmet1");
+    Helmet* helmet1 = new Helmet(Init, m_BackgroundMode, m_pRenderPass, "helmet1");
     helmet1->setPosition(float3(0, 0, 0));
     reactphysics3d::Transform helmetTransform(reactphysics3d::Vector3::zero(), reactphysics3d::Quaternion::identity());
 
@@ -117,7 +326,7 @@ void TestScene::ActorCreation()
 
 
     //Create a plane
-    Plane*                    plane1 = new Plane(Init, m_BackgroundMode, "plane1");
+    Plane* plane1 = new Plane(Init, m_BackgroundMode, m_pRenderPass, "plane1");
     helmet1->setPosition(float3(0, -1, 0));
     reactphysics3d::Transform planeTransform(reactphysics3d::Vector3(0, -1, 0), reactphysics3d::Quaternion::identity());
 
@@ -152,23 +361,47 @@ void TestScene::CollisionComponentCreation(Actor* actor, RigidbodyComponent* rb,
     actor->addComponent(colisionComponent);
 }
 
-
-
-
 // Render a frame
 void TestScene::Render()
 {
-    // Reset default framebuffer
-    auto* pRTV = m_pSwapChain->GetCurrentBackBufferRTV();
-    auto* pDSV = m_pSwapChain->GetDepthBufferDSV();
-    m_pImmediateContext->SetRenderTargets(1, &pRTV, pDSV, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+    auto* pFramebuffer = GetCurrentFramebuffer();
 
-    // Clear the back buffer
-    const float ClearColor[] = {0.23f, 0.5f, 0.74f, 1.0f};
-    m_pImmediateContext->ClearRenderTarget(pRTV, ClearColor, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
-    m_pImmediateContext->ClearDepthStencil(pDSV, CLEAR_DEPTH_FLAG, 1.f, 0, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+    ambientlight->CreateSRB(ColorBuffer, DepthZBuffer);
+    for (auto light : lights)
+    {
+        light->CreateSRB(ColorBuffer, DepthZBuffer);
+    }
 
-    envMaps->RenderActor(m_Camera, false);
+    BeginRenderPassAttribs RPBeginInfo;
+    RPBeginInfo.pRenderPass  = m_pRenderPass;
+    RPBeginInfo.pFramebuffer = pFramebuffer;
+
+    OptimizedClearValue ClearValues[4];
+    // Color
+    ClearValues[0].Color[0] = 0.f;
+    ClearValues[0].Color[1] = 0.f;
+    ClearValues[0].Color[2] = 0.f;
+    ClearValues[0].Color[3] = 0.f;
+
+    // Depth Z
+    ClearValues[1].Color[0] = 1.f;
+    ClearValues[1].Color[1] = 1.f;
+    ClearValues[1].Color[2] = 1.f;
+    ClearValues[1].Color[3] = 1.f;
+
+    // Depth buffer
+    ClearValues[2].DepthStencil.Depth = 1.f;
+
+    // Final color buffer
+    ClearValues[3].Color[0] = 0.0625f;
+    ClearValues[3].Color[1] = 0.0625f;
+    ClearValues[3].Color[2] = 0.0625f;
+    ClearValues[3].Color[3] = 0.f;
+
+    RPBeginInfo.pClearValues        = ClearValues;
+    RPBeginInfo.ClearValueCount     = _countof(ClearValues);
+    RPBeginInfo.StateTransitionMode = RESOURCE_STATE_TRANSITION_MODE_TRANSITION;
+    m_pImmediateContext->BeginRenderPass(RPBeginInfo);
 
     for (auto actor : actors)
     {
@@ -176,6 +409,29 @@ void TestScene::Render()
         {
             actor->RenderActor(m_Camera, false);
         }
+    }
+
+    m_pImmediateContext->NextSubpass();
+
+    envMaps->RenderActor(m_Camera, false);
+
+    ambientlight->RenderActor(m_Camera, false);
+    for (auto light : lights)
+    {
+        light->RenderActor(m_Camera, false);
+    }
+
+    m_pImmediateContext->EndRenderPass();
+
+    if (m_pDevice->GetDeviceCaps().IsGLDevice())
+    {
+        // In OpenGL we now have to copy our off-screen buffer to the default framebuffer
+        auto* pOffscreenRenderTarget = pFramebuffer->GetDesc().ppAttachments[3]->GetTexture();
+        auto* pBackBuffer            = m_pSwapChain->GetCurrentBackBufferRTV()->GetTexture();
+
+        CopyTextureAttribs CopyAttribs{pOffscreenRenderTarget, RESOURCE_STATE_TRANSITION_MODE_TRANSITION,
+                                       pBackBuffer, RESOURCE_STATE_TRANSITION_MODE_TRANSITION};
+        m_pImmediateContext->CopyTexture(CopyAttribs);
     }
 }
 
@@ -186,13 +442,17 @@ void TestScene::Update(double CurrTime, double ElapsedTime)
     //React physic
     _reactPhysic->Update();
 
-
     m_Camera.Update(m_InputController, static_cast<float>(ElapsedTime));
 
     // Animate Actors
     for (auto actor : actors)
     {
             actor->Update(CurrTime, ElapsedTime);
+    }
+
+    for (auto light : lights)
+    {
+        light->UpdateActor(CurrTime, ElapsedTime);
     }
 
     if (m_InputController.IsKeyDown(InputKeys::MoveBackward))
