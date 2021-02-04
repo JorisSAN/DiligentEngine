@@ -112,7 +112,6 @@ public:
                                       // +1 - right handed
     Quaternion rotation = Quaternion(m_fYawAngle,m_fPitchAngle,m_fRollAngle,1.0f);
 
-protected:
     float4x4 GetReferenceRotiation() const;
 };
 
