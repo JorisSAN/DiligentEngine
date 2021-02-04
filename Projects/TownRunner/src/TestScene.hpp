@@ -52,7 +52,6 @@ public:
         static TestScene inst;
         return inst;
     }
-
     virtual void GetEngineInitializationAttribs(RENDER_DEVICE_TYPE DeviceType, EngineCreateInfo& EngineCI, SwapChainDesc& SCDesc) override final;
 
     virtual void Initialize(const SampleInitInfo& InitInfo) override final;
@@ -73,6 +72,8 @@ public:
     void addActor(Actor* actor);
 
     virtual const Char* GetSampleName() const override final { return "Scene"; }
+
+    reactphysics3d::Vector3 TestScene::GetScaleBox(const char* path);
 
 private:
     // Use 16-bit format to make sure it works on mobile devices

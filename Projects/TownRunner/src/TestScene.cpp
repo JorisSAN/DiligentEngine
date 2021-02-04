@@ -39,6 +39,7 @@
 #include "BasicMesh.h"
 #include "AnimPeople.h"
 #include "InputController.hpp"
+#include "Raycast.h"
 #include "Actor.h"
 #include "Plane.h"
 #include "CollisionComponent.hpp"
@@ -46,7 +47,8 @@
 namespace Diligent
 {
 
-SampleBase* CreateSample()
+//reactphysics3d::Vector3 GetScaleBox(const char* path);
+    SampleBase* CreateSample()
 {
     return new TestScene();
 }
@@ -68,7 +70,6 @@ void TestScene::Initialize(const SampleInitInfo& InitInfo)
     _reactPhysic = new ReactPhysic();
 
     Init = InitInfo;
-
     CreateRenderPass();
 
     m_Camera.SetPos(float3(5.0f, 0.0f, 0.0f));
@@ -84,8 +85,9 @@ void TestScene::Initialize(const SampleInitInfo& InitInfo)
     ambientlight.reset(new AmbientLight(Init, m_pRenderPass, pShaderSourceFactory));
 
     //ReadFile coming from levelLoader
-    ReadFile("Blockout.txt", InitInfo, this);
+    ReadFile("BlockoutRemake.txt", InitInfo, this);
     ActorCreation();
+    
 }
 
 void TestScene::CreateRenderPass()
@@ -295,54 +297,58 @@ void TestScene::CreateBasicMesh(const char* path, const SampleInitInfo& InitInfo
     //need to correct with correct collision probably
 
     reactphysics3d::Transform cubeTransform(reactphysics3d::Vector3(vec.x, vec.y, vec.z), reactphysics3d::Quaternion::identity());
+    reactphysics3d::Transform nullTransform(reactphysics3d::Vector3(0, 0, 0), reactphysics3d::Quaternion::identity());
 
     //rigid body
     RigidbodyComponent* rbCube = RigidbodyComponentCreation(mesh, cubeTransform, BodyType::STATIC);
-    //rbCube->GetRigidBody()->setUserData(rbCube);
-  
+    rbCube->GetRigidBody()->setUserData(rbCube);
+    reactphysics3d::Vector3 scalebox =GetScaleBox(path);
+   
     // collision
-    BoxShape* boxShape = _reactPhysic->GetPhysicCommon()->createBoxShape(reactphysics3d::Vector3(1, 1, 1));
+    BoxShape* boxShape = _reactPhysic->GetPhysicCommon()->createBoxShape(scalebox);
     
-    CollisionComponentCreation(mesh, rbCube, boxShape, cubeTransform);
+    CollisionComponentCreation(mesh, rbCube, boxShape, nullTransform);
 
     actors.emplace_back(mesh);
 }
-
+     
 void TestScene::ActorCreation()
 {
     //Create actor and their components
     //Create Helmet
     Helmet* helmet1 = new Helmet(Init, m_BackgroundMode, m_pRenderPass, "helmet1");
-    helmet1->setPosition(float3(0, 0, 0));
-    reactphysics3d::Transform helmetTransform(reactphysics3d::Vector3::zero(), reactphysics3d::Quaternion::identity());
-
+    helmet1->setPosition(float3(0, 2, -5));
+    reactphysics3d::Transform helmetTransform(reactphysics3d::Vector3(0,2,-5), reactphysics3d::Quaternion::identity());
+    reactphysics3d::Transform nullTransform(reactphysics3d::Vector3(0,0,0), reactphysics3d::Quaternion::identity());
+    
     //rb
-    RigidbodyComponent* helmetRigidbody = RigidbodyComponentCreation(helmet1, helmetTransform);
+    RigidbodyComponent* helmetRigidbody = RigidbodyComponentCreation(helmet1, helmetTransform, BodyType::DYNAMIC);
 
     //collision
     SphereShape* sphereShape = _reactPhysic->GetPhysicCommon()->createSphereShape(0.5);
-    CollisionComponentCreation(helmet1, helmetRigidbody, sphereShape, helmetTransform);
+    CollisionComponentCreation(helmet1, helmetRigidbody, sphereShape, nullTransform);
 
 
 
     //Create a plane
-    Plane* plane1 = new Plane(Init, m_BackgroundMode, m_pRenderPass, "plane1");
-    helmet1->setPosition(float3(0, -1, 0));
-    reactphysics3d::Transform planeTransform(reactphysics3d::Vector3(0, -1, 0), reactphysics3d::Quaternion::identity());
+    //Plane* plane1 = new Plane(Init, m_BackgroundMode, m_pRenderPass, "plane1");
+    //helmet1->setPosition(float3(0, -1, 0));
+    //reactphysics3d::Transform planeTransform(reactphysics3d::Vector3(0, -1, 0), reactphysics3d::Quaternion::identity());
 
     //rb
-    RigidbodyComponent* rbPlane = RigidbodyComponentCreation(plane1, planeTransform, BodyType::STATIC);
+    //RigidbodyComponent* rbPlane = RigidbodyComponentCreation(plane1, planeTransform, BodyType::STATIC);
 
     //collision
-    BoxShape* boxShape = _reactPhysic->GetPhysicCommon()->createBoxShape(reactphysics3d::Vector3(2.5, 0.01, 2.5));
-    CollisionComponentCreation(plane1, rbPlane, boxShape, planeTransform);
+    //BoxShape* boxShape = _reactPhysic->GetPhysicCommon()->createBoxShape(reactphysics3d::Vector3(2.5, 0.01, 2.5));
+    //CollisionComponentCreation(plane1, rbPlane, boxShape, nullTransform);
     
 
 
 
     //Add actor to list
     actors.emplace_back(helmet1);
-    actors.emplace_back(plane1);    
+    //actors.emplace_back(plane1);   
+
 }
 
 RigidbodyComponent* TestScene::RigidbodyComponentCreation(Actor* actor, reactphysics3d::Transform transform, BodyType type)
@@ -441,8 +447,8 @@ void TestScene::Update(double CurrTime, double ElapsedTime)
 
     //React physic
     _reactPhysic->Update();
-
     m_Camera.Update(m_InputController, static_cast<float>(ElapsedTime));
+    //Diligent::Log::Instance().Draw();
 
     // Animate Actors
     for (auto actor : actors)
@@ -481,4 +487,53 @@ void TestScene::SetLastActorTransform(float3 _coord, Quaternion _quat, float _sc
     actor->setRotation(_quat);
     actor->setScale(_scale);
 }
+
+
+reactphysics3d::Vector3 TestScene::GetScaleBox(const char* path)
+{
+    if (!strcmp(path, "models\\Immeubles\\v2test\\AssetAntenne.gltf"))
+    {
+
+        return reactphysics3d::Vector3(0.1, 1.5, 0.1);
+    }
+
+    if (!strcmp(path,"models\\Immeubles\\v2test\\AssetToit.gltf"))
+    {
+
+        return reactphysics3d::Vector3(1, 1, 1.43);
+    }
+
+    if (!strcmp(path,"models\\Immeubles\\v2test\\AssetToit2.gltf"))
+    {
+
+        return reactphysics3d::Vector3(1.14, 1.3, 1.9);
+    }
+
+    if (!strcmp(path, "models\\Immeubles\\v2test\\AssetTuyau.gltf"))
+    {
+
+        return reactphysics3d::Vector3(0.33, 0.33, 1.5);
+    }
+
+    if (!strcmp(path,"models\\Immeubles\\v2test\\Immeuble1_V2.gltf"))
+    {
+        return reactphysics3d::Vector3(3, 6.2,7);
+    }
+
+    if (!strcmp(path,"models\\Immeubles\\v2test\\Immeuble2_V3.gltf"))
+    {
+
+        return reactphysics3d::Vector3(3.753, 2.773, 6);
+    }
+
+    if (!strcmp(path, "models\\Immeubles\\v2test\\Immeuble3_X2_V2.gltf"))
+    {
+
+        return reactphysics3d::Vector3(5.8, 33, 5.8);
+    }
+
+    return reactphysics3d::Vector3(1, 1, 1);
+}        
+   
+
 } // namespace Diligent

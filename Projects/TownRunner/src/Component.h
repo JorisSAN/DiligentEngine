@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Log.h"
+#include "Actor.h"
 
 namespace Diligent
 {

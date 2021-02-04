@@ -1,5 +1,4 @@
 #include "Component.h"
-#include "Actor.h"
 
 namespace Diligent
 {
