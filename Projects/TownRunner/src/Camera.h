@@ -37,7 +37,7 @@ namespace Diligent
 class Camera
 {
 public:
-    void Update(InputController& Controller, float ElapsedTime);
+    virtual void Update(InputController& Controller, float ElapsedTime);
     void SetRotation(float Yaw, float Pitch, float Roll);
     void SetLookAt(const float3& LookAt);
     void SetMoveSpeed(float MoveSpeed) { m_fMoveSpeed = MoveSpeed; }
