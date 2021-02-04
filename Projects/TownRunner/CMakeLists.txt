@@ -24,7 +24,9 @@ set(SOURCE
     src/AmbientLight.cpp
     src/PointLight.cpp
     src/TexturedCube.cpp
-)
+    src/Player.cpp
+    src/CameraPlayer.cpp
+) 
 
 set(INCLUDE
     src/TestScene.hpp
@@ -50,6 +52,8 @@ set(INCLUDE
     src/AmbientLight.h
     src/PointLight.h
     src/TexturedCube.hpp
+    src/Player.h
+    src/CameraPlayer.h
 )
 
 set(SHADERS
