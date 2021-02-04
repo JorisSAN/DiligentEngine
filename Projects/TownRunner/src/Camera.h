@@ -30,7 +30,7 @@
 #include "BasicMath.hpp"
 #include "InputController.hpp"
 #include "GraphicsTypes.h"
-
+ 
 namespace Diligent
 {
 

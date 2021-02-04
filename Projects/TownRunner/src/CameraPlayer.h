@@ -11,7 +11,7 @@ class CameraPlayer : public Camera
 {
     public:
     virtual void Update(InputController& Controller, float ElapsedTime);
-
+ 
 };
 }
 

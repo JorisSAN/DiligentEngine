@@ -25,7 +25,7 @@ public:
     void UpdatePlayer(double CurrTime, double ElapsedTime, InputController& Controller);
 
     void SetCamerat(CameraPlayer* c) { m_Camera = c; }
-    CameraPlayer* GetCamera() { return m_Camera; }
+    CameraPlayer* GetCamera() { return m_Camera; } 
 
 private:
 

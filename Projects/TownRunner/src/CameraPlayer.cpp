@@ -10,5 +10,3 @@ void CameraPlayer::Update(InputController& Controller, float ElapsedTime)
 
 
 }
-
-

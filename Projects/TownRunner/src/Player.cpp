@@ -7,7 +7,7 @@ namespace Diligent
 /*Player::Player()
 {
 }
-*/
+*/ 
 
 Player::Player(const SampleInitInfo& InitInfo, BackgroundMode backGroundP, RefCntAutoPtr<IRenderPass>& RenderPass)
 {

@@ -209,5 +209,5 @@ void Camera::SetSpeedUpScales(Float32 SpeedUpScale, Float32 SuperSpeedUpScale)
     m_fSpeedUpScale      = SpeedUpScale;
     m_fSuperSpeedUpScale = SuperSpeedUpScale;
 }
-
+ 
 } // namespace Diligent
