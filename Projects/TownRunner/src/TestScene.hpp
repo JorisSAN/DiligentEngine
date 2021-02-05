@@ -39,6 +39,7 @@
 #include "RigidbodyComponent.hpp"
 #include "AmbientLight.h"
 #include "PointLight.h"
+#include "Player.h"
 
 namespace Diligent
 {
@@ -87,7 +88,8 @@ private:
 
     BackgroundMode m_BackgroundMode = BackgroundMode::EnvironmentMap;
 
-    Camera m_Camera;
+    //Camera m_Camera;
+    Player* _player;
 
     MouseState m_LastMouseState;
 

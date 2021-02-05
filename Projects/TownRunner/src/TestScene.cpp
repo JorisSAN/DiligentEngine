@@ -72,11 +72,17 @@ void TestScene::Initialize(const SampleInitInfo& InitInfo)
     Init = InitInfo;
     CreateRenderPass();
 
+    /*
     m_Camera.SetPos(float3(5.0f, 0.0f, 0.0f));
     m_Camera.SetRotation(PI_F / 2.f, 0, 0);
     m_Camera.SetRotationSpeed(0.005f);
     m_Camera.SetMoveSpeed(5.f);
     m_Camera.SetSpeedUpScales(5.f, 10.f);
+    */
+
+    //Player
+    _player = new Player(Init, m_BackgroundMode, m_pRenderPass, "Player");
+    _player->Initialize(float3(0, 0.5, 0), Quaternion(0, 0, 0, 0), _reactPhysic, float3(0, 0.5f, 0), 0.5f, 1.8f, 0.005f, 5.f);
 
     m_pEngineFactory->CreateDefaultShaderSourceStreamFactory(nullptr, &pShaderSourceFactory);
 
@@ -344,7 +350,6 @@ void TestScene::ActorCreation()
     
 
 
-
     //Add actor to list
     actors.emplace_back(helmet1);
     //actors.emplace_back(plane1);   
@@ -413,18 +418,18 @@ void TestScene::Render()
     {
         if (actor->getState() == Actor::ActorState::Active)
         {
-            actor->RenderActor(m_Camera, false);
+            actor->RenderActor(*_player->GetCamera(), false);
         }
     }
 
     m_pImmediateContext->NextSubpass();
 
-    envMaps->RenderActor(m_Camera, false);
+    envMaps->RenderActor(*_player->GetCamera(), false);
 
-    ambientlight->RenderActor(m_Camera, false);
+    ambientlight->RenderActor(*_player->GetCamera(), false);
     for (auto light : lights)
     {
-        light->RenderActor(m_Camera, false);
+        light->RenderActor(*_player->GetCamera(), false);
     }
 
     m_pImmediateContext->EndRenderPass();
@@ -438,7 +443,7 @@ void TestScene::Render()
         CopyTextureAttribs CopyAttribs{pOffscreenRenderTarget, RESOURCE_STATE_TRANSITION_MODE_TRANSITION,
                                        pBackBuffer, RESOURCE_STATE_TRANSITION_MODE_TRANSITION};
         m_pImmediateContext->CopyTexture(CopyAttribs);
-    }
+    }   
 }
 
 void TestScene::Update(double CurrTime, double ElapsedTime)
@@ -447,8 +452,11 @@ void TestScene::Update(double CurrTime, double ElapsedTime)
 
     //React physic
     _reactPhysic->Update();
-    m_Camera.Update(m_InputController, static_cast<float>(ElapsedTime));
-    //Diligent::Log::Instance().Draw();
+    //m_Camera.Update(m_InputController, static_cast<float>(ElapsedTime));
+    _player->UpdatePlayer(CurrTime, ElapsedTime, m_InputController);
+
+    //Draw log
+    Diligent::Log::Instance().Draw();
 
     // Animate Actors
     for (auto actor : actors)

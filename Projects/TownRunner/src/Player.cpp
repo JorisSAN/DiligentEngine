@@ -4,7 +4,7 @@
 namespace Diligent
 {
 
-    Player::Player(const SampleInitInfo& InitInfo, BackgroundMode backGroundP, RefCntAutoPtr<IRenderPass>& RenderPass)
+Player::Player(const SampleInitInfo& InitInfo, BackgroundMode backGroundP, RefCntAutoPtr<IRenderPass>& RenderPass)
 {
     GLTFObject::Initialize(InitInfo, RenderPass);
     setObjectPath("models/Cube/Cube.gltf");

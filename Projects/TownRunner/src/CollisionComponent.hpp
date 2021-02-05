@@ -33,6 +33,6 @@ public:
 private:
     CollisionShape* _collisionShape;
     Collider*                    _collider;
-};
+}; 
 
 } //namespace Diligent
