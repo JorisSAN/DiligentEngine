@@ -78,11 +78,13 @@ public:
     void computeWorldTransform();
 
     float      getScale() { return scale; }
+    float3     getScale3() { return scale3; }
     Quaternion getRotation() { return rotation; }
     float3     getPosition() { return position; }
     ActorState getState() { return state; }
 
     void setScale(float scaleP) { scale = scaleP; }
+    void setScale3(float3 scaleP) { scale3 = scaleP; }
     void setRotation(Quaternion rotationP) { rotation = rotationP; }
     void setPosition(float3 positionP);
     void setState(ActorState stateP) { state = stateP; }
@@ -107,6 +109,7 @@ protected:
     float4x4       m_ContextInit = float4x4::Identity();
 
     float      scale    = 1.0f;
+    float3     scale3   = float3(0.0f, 0.0f, 0.0f);
     Quaternion rotation = Quaternion::RotationFromAxisAngle(float3(1, 0, 0), PI_F);
     float3     position = float3(0.0f, 0.0f, 0.0f);
 

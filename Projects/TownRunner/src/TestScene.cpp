@@ -42,6 +42,7 @@
 #include "Raycast.h"
 #include "Actor.h"
 #include "Plane.h"
+#include "Ray.h"
 #include "CollisionComponent.hpp"
 
 namespace Diligent
@@ -83,6 +84,14 @@ void TestScene::Initialize(const SampleInitInfo& InitInfo)
     envMaps.reset(new EnvMap(Init, m_BackgroundMode, m_pRenderPass));
 
     ambientlight.reset(new AmbientLight(Init, m_pRenderPass, pShaderSourceFactory));
+
+    //#########################
+    // Line Trace
+    float3 p(0, 0, 0);
+    float3 p2(1, 1, 1);
+
+    addRay(p, p2, 10, 0.5);
+    //#########################
 
     //ReadFile coming from levelLoader
     ReadFile("BlockoutRemake.txt", InitInfo, this);
@@ -481,13 +490,26 @@ void TestScene::removeActor(Actor* actor)
     }
 }
 
+void TestScene::addRay(float3 beginPoint, float3 endPoint, float detail, float scale)
+{
+    for (float i = 0; i <= detail; i++)
+    {
+        float x(beginPoint.x + (endPoint.x - beginPoint.x) * (i / detail)), 
+              y(beginPoint.y + (endPoint.y - beginPoint.y) * (i / detail)), 
+              z(beginPoint.z + (endPoint.z - beginPoint.z) * (i / detail));
+        Ray* ray = new Ray(Init, m_BackgroundMode, m_pRenderPass);
+        ray->setPosition(float3(x, y, z));
+        ray->setScale(scale);
+        addActor(ray);
+    }
+}
+
 void TestScene::SetLastActorTransform(float3 _coord, Quaternion _quat, float _scale) {
     Actor* actor = actors.back();
     actor->setPosition(_coord);
     actor->setRotation(_quat);
     actor->setScale(_scale);
 }
-
 
 reactphysics3d::Vector3 TestScene::GetScaleBox(const char* path)
 {
