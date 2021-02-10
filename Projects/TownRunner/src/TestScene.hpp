@@ -39,6 +39,8 @@
 #include "RigidbodyComponent.hpp"
 #include "AmbientLight.h"
 #include "PointLight.h"
+#include "Player.h"
+#include "Target.h"
 
 namespace Diligent
 {
@@ -61,6 +63,9 @@ public:
 
     //Needed when we will implement target actor or else
     void           CreateAdaptedActor(std::string actorClass, const SampleInitInfo& InitInfo){};
+
+
+    void           CreateTargetAndLight();
     //Needed to create basic static mesh of a gltf model 
     void           CreateBasicMesh(const char* path, const SampleInitInfo& InitInfo,float3 coord);
     void           SetLastActorTransform(float3 _coord, Quaternion _quat, float _scale);
@@ -91,8 +96,11 @@ private:
     Camera m_Camera;
 
     MouseState m_LastMouseState;
+    Player*             player;
+
 
     std::vector<Actor*> actors;
+    std::vector<Target*> targets;
 
     std::unique_ptr<EnvMap>       envMaps;
     std::unique_ptr<AmbientLight> ambientlight;

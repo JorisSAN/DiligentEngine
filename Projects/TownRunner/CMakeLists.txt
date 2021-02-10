@@ -18,6 +18,7 @@ set(SOURCE
     src/Log.cpp
     src/Plane.cpp
     src/Ray.cpp
+    src/Target.cpp
     src/CollisionComponent.cpp
     src/Raycast.cpp
     src/MyRaycastCallback.cpp
@@ -47,6 +48,7 @@ set(INCLUDE
     src/Log.h
     src/Plane.h
     src/Ray.h
+    src/Target.h
     src/CollisionComponent.hpp
     src/Raycast.h
     src/MyRaycastCallback.h
