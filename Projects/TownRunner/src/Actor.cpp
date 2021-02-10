@@ -85,7 +85,14 @@ void Actor::Update(double CurrTime, double ElapsedTime)
 void Actor::computeWorldTransform() 
 {
     m_WorldMatrix = m_ContextInit;
-    m_WorldMatrix *= m_WorldMatrix.Scale(getScale());
+    if (scale3.x == 0.0f && scale3.x == 0.0f && scale3.x == 0.0f)
+    {
+        m_WorldMatrix *= m_WorldMatrix.Scale(getScale());
+    }
+    else
+    {
+        m_WorldMatrix *= m_WorldMatrix.Scale(getScale3());
+    }
     m_WorldMatrix *= Quaternion::createFromQuaternion(getRotation());
     m_WorldMatrix *= m_WorldMatrix.Translation(getPosition());
 }

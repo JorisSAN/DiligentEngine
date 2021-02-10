@@ -70,6 +70,7 @@ public:
 
     void removeActor(Actor* actor);
     void addActor(Actor* actor);
+    void addRay(float3 beginPoint, float3 endPoint, float detail, float scale);
 
     virtual const Char* GetSampleName() const override final { return "Scene"; }
 
