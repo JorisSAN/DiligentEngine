@@ -17,6 +17,8 @@ set(SOURCE
     src/RigidbodyComponent.cpp
     src/Log.cpp
     src/Plane.cpp
+    src/Ray.cpp
+    src/Target.cpp
     src/CollisionComponent.cpp
     src/Raycast.cpp
     src/MyRaycastCallback.cpp
@@ -45,6 +47,8 @@ set(INCLUDE
     src/RigidbodyComponent.hpp
     src/Log.h
     src/Plane.h
+    src/Ray.h
+    src/Target.h
     src/CollisionComponent.hpp
     src/Raycast.h
     src/MyRaycastCallback.h
@@ -90,9 +94,10 @@ file(GLOB FLIGHT_HELMENT_MODEL LIST_DIRECTORIES false assets/models/FlightHelmet
 file(GLOB METAL_ROUGH_SPHERES_MODEL LIST_DIRECTORIES false assets/models/MetalRoughSpheres/*.*)
 file(GLOB NORMAL_TANGENT_TEST_MODEL LIST_DIRECTORIES false assets/models/NormalTangentTest/*.*)
 file(GLOB PLANE LIST_DIRECTORIES false assets/models/Plane/*.*)
+file(GLOB RAY LIST_DIRECTORIES false assets/models/Ray/*.*)
 
 set(MODELS ${BOOM_BOX_MODEL} ${CESIUM_MAN_MODEL} ${DAMAGED_HELMENT_MODEL}
-           ${FLIGHT_HELMENT_MODEL} ${METAL_ROUGH_SPHERES_MODEL} ${NORMAL_TANGENT_TEST_MODEL} ${PLANE})
+           ${FLIGHT_HELMENT_MODEL} ${METAL_ROUGH_SPHERES_MODEL} ${NORMAL_TANGENT_TEST_MODEL} ${PLANE} ${RAY})
 
 set(TEXTURES assets/textures/papermill.ktx)
 
@@ -254,6 +259,11 @@ set_source_files_properties(${PLANE} PROPERTIES
     MACOSX_PACKAGE_LOCATION "Resources/models/Plane"
 )
 
+set_source_files_properties(${RAY} PROPERTIES
+    VS_DEPLOYMENT_LOCATION "models/Ray"
+    MACOSX_PACKAGE_LOCATION "Resources/models/Ray"
+)
+
 
 #Add C++ Include Directories
 include_directories(${CMAKE_SOURCE_DIR}/ReactPhysics3D/include)
@@ -269,3 +279,4 @@ source_group("assets\\models\\FlightHelmet" FILES ${FLIGHT_HELMENT_MODEL})
 source_group("assets\\models\\MetalRoughSpheres" FILES ${METAL_ROUGH_SPHERES_MODEL})
 source_group("assets\\models\\NormalTangentTest" FILES ${NORMAL_TANGENT_TEST_MODEL})
 source_group("assets\\models\\Plane" FILES ${PLANE})
+source_group("assets\\models\\Ray" FILES ${RAY})

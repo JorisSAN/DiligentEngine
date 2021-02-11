@@ -42,6 +42,7 @@
 #include "Raycast.h"
 #include "Actor.h"
 #include "Plane.h"
+#include "Ray.h"
 #include "CollisionComponent.hpp"
 
 namespace Diligent
@@ -90,10 +91,19 @@ void TestScene::Initialize(const SampleInitInfo& InitInfo)
 
     ambientlight.reset(new AmbientLight(Init, m_pRenderPass, pShaderSourceFactory));
 
+    //#########################
+    // Line Trace
+    float3 p(0, 0, 0);
+    float3 p2(1, 1, 1);
+
+    addRay(p, p2, 10, 0.5);
+    //#########################
+
     //ReadFile coming from levelLoader
     ReadFile("BlockoutRemake.txt", InitInfo, this);
     ActorCreation();
     
+    CreateTargetAndLight();
 }
 
 void TestScene::CreateRenderPass()
@@ -489,6 +499,20 @@ void TestScene::removeActor(Actor* actor)
     }
 }
 
+void TestScene::addRay(float3 beginPoint, float3 endPoint, float detail, float scale)
+{
+    for (float i = 0; i <= detail; i++)
+    {
+        float x(beginPoint.x + (endPoint.x - beginPoint.x) * (i / detail)), 
+              y(beginPoint.y + (endPoint.y - beginPoint.y) * (i / detail)), 
+              z(beginPoint.z + (endPoint.z - beginPoint.z) * (i / detail));
+        Ray* ray = new Ray(Init, m_BackgroundMode, m_pRenderPass);
+        ray->setPosition(float3(x, y, z));
+        ray->setScale(scale);
+        addActor(ray);
+    }
+}
+
 void TestScene::SetLastActorTransform(float3 _coord, Quaternion _quat, float _scale) {
     Actor* actor = actors.back();
     actor->setPosition(_coord);
@@ -497,7 +521,229 @@ void TestScene::SetLastActorTransform(float3 _coord, Quaternion _quat, float _sc
 }
 
 
-reactphysics3d::Vector3 TestScene::GetScaleBox(const char* path)
+void                    TestScene::CreateTargetAndLight() {
+
+    PointLight* light1 = new PointLight(Init, m_pRenderPass, pShaderSourceFactory);
+    light1->setLocation(float3(0.3, -1.8, -12));
+    light1->setColor(float3(1, 0, 0));
+    lights.emplace_back(light1);
+
+    PointLight* light2 = new PointLight(Init, m_pRenderPass, pShaderSourceFactory);
+    light2->setLocation(float3(5, -1.4, -22.25));
+    light2->setColor(float3(1, 0, 0));
+    lights.emplace_back(light2);
+
+    PointLight* light3 = new PointLight(Init, m_pRenderPass, pShaderSourceFactory);
+    light3->setLocation(float3(15.3, -1.4, -13.8));
+    light3->setColor(float3(1, 0, 0));
+    lights.emplace_back(light3);
+
+
+    PointLight* light4 = new PointLight(Init, m_pRenderPass, pShaderSourceFactory);
+    light4->setLocation(float3(16.3, -1.4, -0.5));
+    light4->setColor(float3(1, 0, 0));
+    lights.emplace_back(light4);
+
+
+    PointLight* light5 = new PointLight(Init, m_pRenderPass, pShaderSourceFactory);
+    light5->setLocation(float3(12, -1.4, 12));
+    light5->setColor(float3(1, 0, 0));
+    lights.emplace_back(light5);
+
+    PointLight* light6 = new PointLight(Init, m_pRenderPass, pShaderSourceFactory);
+    light6->setLocation(float3(-10, -1.8, 16.5));
+    light6->setColor(float3(1, 0, 0));
+    lights.emplace_back(light6);
+
+    PointLight* light7 = new PointLight(Init, m_pRenderPass, pShaderSourceFactory);
+    light7->setLocation(float3(-24.8, -1.4, 11));
+    light7->setColor(float3(1, 0, 0));
+    lights.emplace_back(light7);
+
+    PointLight* light8 = new PointLight(Init, m_pRenderPass, pShaderSourceFactory);
+    light8->setLocation(float3(-38, -1.4, 2));
+    light8->setColor(float3(1, 0, 0));
+    lights.emplace_back(light8);
+
+    PointLight* light9 = new PointLight(Init, m_pRenderPass, pShaderSourceFactory);
+    light9->setLocation(float3(-31.8, -1.4, -10));
+    light9->setColor(float3(1, 0, 0));
+    lights.emplace_back(light9);
+
+    PointLight* light10 = new PointLight(Init, m_pRenderPass, pShaderSourceFactory);
+    light10->setLocation(float3(-31.8, -1.4, -20));
+    light10->setColor(float3(1, 0, 0));
+    lights.emplace_back(light10);
+
+    PointLight* light11 = new PointLight(Init, m_pRenderPass, pShaderSourceFactory);
+    light11->setLocation(float3(-42.9, -1.4, -32));
+    light11->setColor(float3(0, 1, 0));
+    light11->setSize(2);
+    lights.emplace_back(light11);
+
+    reactphysics3d::Transform nullTransform(reactphysics3d::Vector3(0, 0, 0), reactphysics3d::Quaternion::identity());
+    SphereShape*              sphereShape = _reactPhysic->GetPhysicCommon()->createSphereShape(1);
+
+    {
+        Target* target = new Target(Init, m_BackgroundMode, m_pRenderPass, "target1");
+
+        target->setPosition(float3(2, 3, -27.8));
+        reactphysics3d::Transform targetTransform(reactphysics3d::Vector3(2, -2, -20), reactphysics3d::Quaternion::identity());
+        target->setScale(0.33);
+        target->setRotation(Quaternion(cos(0.5 * PI), 0, 0, sin(0.5 * PI)));
+
+        //rb
+        RigidbodyComponent* targetRigidbody = RigidbodyComponentCreation(target, targetTransform, BodyType::STATIC);
+
+        //collision
+        CollisionComponentCreation(target, targetRigidbody, sphereShape, nullTransform);
+        targets.emplace_back(target);
+        actors.emplace_back(target);
+    }
+    {
+        Target* target = new Target(Init, m_BackgroundMode, m_pRenderPass, "target2");
+
+        target->setPosition(float3(16, 3, -17));
+        reactphysics3d::Transform targetTransform(reactphysics3d::Vector3(21, 4, -22), reactphysics3d::Quaternion::identity());
+        target->setScale(0.33);
+        target->setRotation(Quaternion(cos(140 * PI / 180), 0, sin(140 * PI / 180), 0));
+
+        //rb
+        RigidbodyComponent* targetRigidbody = RigidbodyComponentCreation(target, targetTransform, BodyType::STATIC);
+
+        //collision
+        CollisionComponentCreation(target, targetRigidbody, sphereShape, nullTransform);
+        targets.emplace_back(target);
+        actors.emplace_back(target);
+    }
+    {
+        Target* target = new Target(Init, m_BackgroundMode, m_pRenderPass, "target6");
+
+        target->setPosition(float3(0, 2, -5));
+        reactphysics3d::Transform targetTransform(reactphysics3d::Vector3(22.5, 2.5, -6.5), reactphysics3d::Quaternion::identity());
+        target->setScale(0.33);
+        target->setRotation(Quaternion(cos(-20 * PI / 180), 0, sin(-20 * PI / 180), 0));
+
+        //rb
+        RigidbodyComponent* targetRigidbody = RigidbodyComponentCreation(target, targetTransform, BodyType::STATIC);
+
+        //collision
+        CollisionComponentCreation(target, targetRigidbody, sphereShape, nullTransform);
+        targets.emplace_back(target);
+        actors.emplace_back(target);
+    }
+    {
+        Target* target = new Target(Init, m_BackgroundMode, m_pRenderPass, "target3");
+
+        target->setPosition(float3(0, 2, -5));
+        reactphysics3d::Transform targetTransform(reactphysics3d::Vector3(0, -2, 2.5), reactphysics3d::Quaternion::identity());
+        target->setScale(0.33);
+        target->setRotation(Quaternion(cos(90 * PI / 180), 0, sin(90 * PI / 180), 0));
+
+        //rb
+        RigidbodyComponent* targetRigidbody = RigidbodyComponentCreation(target, targetTransform, BodyType::STATIC);
+
+        //collision
+        CollisionComponentCreation(target, targetRigidbody, sphereShape, nullTransform);
+        targets.emplace_back(target);
+        actors.emplace_back(target);
+    }
+    {
+        Target* target = new Target(Init, m_BackgroundMode, m_pRenderPass, "target4");
+
+        target->setPosition(float3(0, 2, -5));
+        reactphysics3d::Transform targetTransform(reactphysics3d::Vector3(3, -2, 15), reactphysics3d::Quaternion::identity());
+        target->setScale(0.33);
+
+        //rb
+        RigidbodyComponent* targetRigidbody = RigidbodyComponentCreation(target, targetTransform, BodyType::STATIC);
+
+        //collision
+        CollisionComponentCreation(target, targetRigidbody, sphereShape, nullTransform);
+        targets.emplace_back(target);
+        actors.emplace_back(target);
+    }
+    {
+        Target* target = new Target(Init, m_BackgroundMode, m_pRenderPass, "target5");
+
+        target->setPosition(float3(0, 2, -5));
+        reactphysics3d::Transform targetTransform(reactphysics3d::Vector3(2, 5, 23), reactphysics3d::Quaternion::identity());
+        target->setScale(0.33);
+
+        //rb
+        RigidbodyComponent* targetRigidbody = RigidbodyComponentCreation(target, targetTransform, BodyType::STATIC);
+
+        //collision
+        CollisionComponentCreation(target, targetRigidbody, sphereShape, nullTransform);
+        targets.emplace_back(target);
+        actors.emplace_back(target);
+    }
+    {
+        Target* target = new Target(Init, m_BackgroundMode, m_pRenderPass, "target7");
+
+        target->setPosition(float3(0, 2, -5));
+        reactphysics3d::Transform targetTransform(reactphysics3d::Vector3(-19, 3.5, 6.5), reactphysics3d::Quaternion::identity());
+        target->setScale(0.33);
+        target->setRotation(Quaternion(cos(90 * PI / 180), 0, sin(90 * PI / 180), 0));
+
+        //rb
+        RigidbodyComponent* targetRigidbody = RigidbodyComponentCreation(target, targetTransform, BodyType::STATIC);
+
+        //collision
+        CollisionComponentCreation(target, targetRigidbody, sphereShape, nullTransform);
+        targets.emplace_back(target);
+        actors.emplace_back(target);
+    }
+    {
+        Target* target = new Target(Init, m_BackgroundMode, m_pRenderPass, "target8");
+
+        target->setPosition(float3(0, 2, -5));
+        reactphysics3d::Transform targetTransform(reactphysics3d::Vector3(-27, 3.5, 0), reactphysics3d::Quaternion::identity());
+        target->setScale(0.33);
+        target->setRotation(Quaternion(cos(-45 * PI / 180), 0, sin(-45 * PI / 180), 0));
+
+        //rb
+        RigidbodyComponent* targetRigidbody = RigidbodyComponentCreation(target, targetTransform, BodyType::STATIC);
+
+        //collision
+        CollisionComponentCreation(target, targetRigidbody, sphereShape, nullTransform);
+        targets.emplace_back(target);
+        actors.emplace_back(target);
+    }
+    {
+        Target* target = new Target(Init, m_BackgroundMode, m_pRenderPass, "target9");
+
+        target->setPosition(float3(0, 2, -5));
+        reactphysics3d::Transform targetTransform(reactphysics3d::Vector3(-45, 4, 3), reactphysics3d::Quaternion::identity());
+        target->setScale(0.33);
+        target->setRotation(Quaternion(cos(45 * PI / 180), 0, sin(45 * PI / 180), 0));
+
+        //rb
+        RigidbodyComponent* targetRigidbody = RigidbodyComponentCreation(target, targetTransform, BodyType::STATIC);
+
+        //collision
+        CollisionComponentCreation(target, targetRigidbody, sphereShape, nullTransform);
+        targets.emplace_back(target);
+        actors.emplace_back(target);
+    }
+    {
+        Target* target = new Target(Init, m_BackgroundMode, m_pRenderPass, "target10");
+
+        target->setPosition(float3(0, 2, -5));
+        reactphysics3d::Transform targetTransform(reactphysics3d::Vector3(-33, -2, -14.5), reactphysics3d::Quaternion::identity());
+        target->setScale(0.33);
+        target->setRotation(Quaternion(cos(90 * PI / 180), 0, sin(90 * PI / 180), 0));
+
+        //rb
+        RigidbodyComponent* targetRigidbody = RigidbodyComponentCreation(target, targetTransform, BodyType::STATIC);
+
+        //collision
+        CollisionComponentCreation(target, targetRigidbody, sphereShape, nullTransform);
+        targets.emplace_back(target);
+        actors.emplace_back(target);
+    }
+}
+    reactphysics3d::Vector3 TestScene::GetScaleBox(const char* path)
 {
     if (!strcmp(path, "models\\Immeubles\\v2test\\AssetAntenne.gltf"))
     {
