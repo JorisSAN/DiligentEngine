@@ -83,7 +83,7 @@ void TestScene::Initialize(const SampleInitInfo& InitInfo)
 
     //Player
     _player = new Player(Init, m_BackgroundMode, m_pRenderPass, "Player");
-    _player->Initialize(float3(0, 0.5, 0), Quaternion(0, 0, 0, 0), _reactPhysic, float3(0, 0.5f, 0), 0.5f, 1.8f, 0.005f, 5.f);
+    _player->Initialize(float3(0, 15, 0), Quaternion(0, 0, 0, 1), _reactPhysic, float3(0, 0.5f, 0), 0.5f, 1.8f, 0.005f, 10.f, 150);
 
     m_pEngineFactory->CreateDefaultShaderSourceStreamFactory(nullptr, &pShaderSourceFactory);
 
@@ -345,25 +345,22 @@ void TestScene::ActorCreation()
     CollisionComponentCreation(helmet1, helmetRigidbody, sphereShape, nullTransform);
 
 
-
     //Create a plane
-    //Plane* plane1 = new Plane(Init, m_BackgroundMode, m_pRenderPass, "plane1");
-    //helmet1->setPosition(float3(0, -1, 0));
-    //reactphysics3d::Transform planeTransform(reactphysics3d::Vector3(0, -1, 0), reactphysics3d::Quaternion::identity());
+    Plane* plane1 = new Plane(Init, m_BackgroundMode, m_pRenderPass, "plane1");
+    helmet1->setPosition(float3(0, 10, 0));
+    reactphysics3d::Transform planeTransform(reactphysics3d::Vector3(0, 10, 0), reactphysics3d::Quaternion::identity());
 
     //rb
-    //RigidbodyComponent* rbPlane = RigidbodyComponentCreation(plane1, planeTransform, BodyType::STATIC);
+    RigidbodyComponent* rbPlane = RigidbodyComponentCreation(plane1, planeTransform, BodyType::STATIC);
 
     //collision
-    //BoxShape* boxShape = _reactPhysic->GetPhysicCommon()->createBoxShape(reactphysics3d::Vector3(2.5, 0.01, 2.5));
-    //CollisionComponentCreation(plane1, rbPlane, boxShape, nullTransform);
-    
+    BoxShape* boxShape = _reactPhysic->GetPhysicCommon()->createBoxShape(reactphysics3d::Vector3(250, 4, 250));
+    CollisionComponentCreation(plane1, rbPlane, boxShape, nullTransform);
 
 
     //Add actor to list
     actors.emplace_back(helmet1);
-    //actors.emplace_back(plane1);   
-
+    actors.emplace_back(plane1);   
 }
 
 RigidbodyComponent* TestScene::RigidbodyComponentCreation(Actor* actor, reactphysics3d::Transform transform, BodyType type)
@@ -462,7 +459,6 @@ void TestScene::Update(double CurrTime, double ElapsedTime)
 
     //React physic
     _reactPhysic->Update();
-    //m_Camera.Update(m_InputController, static_cast<float>(ElapsedTime));
     _player->UpdatePlayer(CurrTime, ElapsedTime, m_InputController);
 
     //Draw log
@@ -478,9 +474,6 @@ void TestScene::Update(double CurrTime, double ElapsedTime)
     {
         light->UpdateActor(CurrTime, ElapsedTime);
     }
-
-    if (m_InputController.IsKeyDown(InputKeys::MoveBackward))
-        actors.back()->setState(Actor::ActorState::Dead);
 }
 
 void TestScene::addActor(Actor* actor)
@@ -743,7 +736,8 @@ void                    TestScene::CreateTargetAndLight() {
         actors.emplace_back(target);
     }
 }
-    reactphysics3d::Vector3 TestScene::GetScaleBox(const char* path)
+   
+reactphysics3d::Vector3 TestScene::GetScaleBox(const char* path)
 {
     if (!strcmp(path, "models\\Immeubles\\v2test\\AssetAntenne.gltf"))
     {

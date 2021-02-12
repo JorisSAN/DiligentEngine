@@ -93,10 +93,8 @@ private:
 
     BackgroundMode m_BackgroundMode = BackgroundMode::EnvironmentMap;
 
-    Camera m_Camera;
-
     MouseState m_LastMouseState;
-    Player*             player;
+    Player*             _player;
 
 
     std::vector<Actor*> actors;
