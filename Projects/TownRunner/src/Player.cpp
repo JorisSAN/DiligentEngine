@@ -54,6 +54,7 @@ void Player::Initialize(float3 spawnPosition, Quaternion spawnRotation, ReactPhy
     m_Camera->SetRotationSpeed(cameraRotationSpeed);
     m_Camera->SetMoveSpeed(cameraMoveSpeed);
     m_Camera->SetSpeedUpScales(5.f, 10.f);
+    m_Camera->SetProjAttribs(1, 5, 1, PI_F * 2 / 4, SURFACE_TRANSFORM_IDENTITY, false);
 }
 
 void Player::UpdatePlayer(double CurrTime, double ElapsedTime, InputController& Controller)

@@ -461,6 +461,63 @@ void TestScene::Update(double CurrTime, double ElapsedTime)
     _reactPhysic->Update();
     _player->UpdatePlayer(CurrTime, ElapsedTime, m_InputController);
 
+    // Shoot
+    {
+        const auto& mouseState = m_InputController.GetMouseState();
+
+        if (mouseState.ButtonFlags == MouseState::BUTTON_FLAG_RIGHT && (m_LastMouseState.ButtonFlags != mouseState.ButtonFlags))
+        {
+            //preparation
+            float winHeight = (float)m_pSwapChain->GetDesc().Height;
+            float winWidth  = (float)m_pSwapChain->GetDesc().Width;
+            //Viewport Space
+            float3 mousePos = float4(mouseState.PosX, mouseState.PosY, 1, 1);
+            //normalised device Space
+            mousePos.x = ((2 * mousePos.x) / winWidth - 1.0f) / 2;
+            mousePos.y = (1.0f - (2 * mousePos.y) / winHeight) / 2;
+            //homogenous Space
+            float4 clipPos = float4(mousePos.x, mousePos.y, -1.0f, 1.0f);
+            //camera Space
+
+            float4x4 camProj = _player->GetCamera()->GetProjMatrix();
+            camProj          = camProj.Transpose();
+            camProj          = camProj.Inverse();
+
+
+            float4 eyePos = camProj * clipPos;
+            eyePos        = float4(eyePos.x, eyePos.y, 1.0f, 0.0f);
+            //world Space
+            float4x4 viewMatrix = _player->GetCamera()->GetViewMatrix();
+
+            viewMatrix = viewMatrix.Transpose();
+            viewMatrix = viewMatrix.Inverse();
+
+            float4 pos4 = viewMatrix * eyePos;
+            float3 pos3 = float3(pos4);
+            pos3        = normalize(pos3);
+            pos4        = normalize(pos4);
+            //Raycast start and end
+
+            reactphysics3d::Vector3 vec3Start = reactphysics3d::Vector3(_player->GetCamera()->GetPos().x, _player->GetCamera()->GetPos().y, _player->GetCamera()->GetPos().z);
+            float3                  float3End = _player->GetCamera()->GetPos() + pos3 * 50;
+            reactphysics3d::Vector3 vec3End   = reactphysics3d::Vector3(float3End.x, float3End.y, float3End.z);
+
+
+
+            MyRaycastCallback testasr;
+
+            Raycast interRay(vec3Start, vec3End);
+            _reactPhysic->GetPhysicWorld()->raycast(interRay.GetRay(), &testasr);
+            //printing
+            //string message = "Start Ray = " + std::to_string(vec3Start.x) + "," + std::to_string(vec3Start.y) + "," + std::to_string(vec3Start.z);
+            //Diligent::Log::Instance().addInfo(message);
+            //message = "End Ray = " + std::to_string(vec3End.x) + "," + std::to_string(vec3End.y) + "," + std::to_string(vec3End.z);
+            //Diligent::Log::Instance().addInfo(message);
+        }
+    }
+    m_LastMouseState = m_InputController.GetMouseState();
+    
+    
     //Draw log
     Diligent::Log::Instance().Draw();
 
