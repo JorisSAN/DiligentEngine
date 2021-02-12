@@ -19,7 +19,7 @@ Player::Player(const SampleInitInfo& InitInfo, BackgroundMode backGroundP, RefCn
     _actorName       = name;
 }
 
-void Player::Initialize(float3 spawnPosition, Quaternion spawnRotation, ReactPhysic* reactPhysic, float3 cameraSpring, float capsuleRadius, float capsuleHeight, float cameraRotationSpeed, float cameraMoveSpeed)
+void Player::Initialize(float3 spawnPosition, Quaternion spawnRotation, ReactPhysic* reactPhysic, float3 cameraSpring, float capsuleRadius, float capsuleHeight, float cameraRotationSpeed, float cameraMoveSpeed, float jumpHeight)
 {
     //Player
     setPosition(spawnPosition);
@@ -32,14 +32,18 @@ void Player::Initialize(float3 spawnPosition, Quaternion spawnRotation, ReactPhy
     reactphysics3d::Transform rbTrans(rbPos, rbRot);
     RigidbodyComponent* rb = new RigidbodyComponent(GetActor(), rbTrans, reactPhysic->GetPhysicWorld());
     rb->GetRigidBody()->setType(BodyType::KINEMATIC);
+    rb->GetRigidBody()->setMass(80);
+    _playerRB = rb;
     addComponent(rb);
     
     CapsuleShape* capsuleShape = reactPhysic->GetPhysicCommon()->createCapsuleShape(capsuleRadius, capsuleHeight);
     CollisionComponent* colComp = new CollisionComponent(GetActor(), capsuleShape);
     colComp->SetCollider(rb->GetRigidBody()->addCollider(capsuleShape, rbTrans));
+    _playerCC = colComp;
     addComponent(colComp);
 
-    
+    _jumpHeight = jumpHeight;
+
     //Camera
     m_Camera = new CameraPlayer();
     SetCameraSpring(cameraSpring);
@@ -70,11 +74,6 @@ void Player::UpdatePlayer(double CurrTime, double ElapsedTime, InputController& 
         MoveDirection.x += 1.0f;
     if (Controller.IsKeyDown(InputKeys::MoveLeft))
         MoveDirection.x -= 1.0f;
-
-    if (Controller.IsKeyDown(InputKeys::MoveUp))
-        MoveDirection.y += 1.0f;
-    if (Controller.IsKeyDown(InputKeys::MoveDown))
-        MoveDirection.y -= 1.0f;
 
     // Normalize vector so if moving in 2 dirs (left & forward),
     // the camera doesn't move faster than if moving in 1 dir
@@ -132,30 +131,46 @@ void Player::UpdatePlayer(double CurrTime, double ElapsedTime, InputController& 
     float3 PosDeltaWorld = PosDelta * WorldRotation;
 
     //Update coords
-    position += PosDeltaWorld; //player
-    m_Camera->m_Pos = position + _cameraSpring;
+    //Player
+    reactphysics3d::Transform rbTrans = _playerRB->GetRigidBody()->getTransform();
+    reactphysics3d::Vector3   rbPos   = rbTrans.getPosition();
+    rbPos = reactphysics3d::Vector3(rbPos.x + PosDeltaWorld.x, rbPos.y, rbPos.z + PosDeltaWorld.z);
+    rbTrans.setPosition(rbPos);
+    _playerRB->GetRigidBody()->setTransform(rbTrans);
+    //position += PosDeltaWorld; //player
+    //Jump
+    if (Controller.IsKeyDown(InputKeys::Jump) && _canJump)
+    {
+        _canJump       = false;
+        string message = "JUMP";
+        Diligent::Log::Instance().addInfo(message);
+        Diligent::Log::Instance().Draw();
+        reactphysics3d::Vector3 jump = reactphysics3d::Vector3(0, _jumpHeight, 0);
+        _playerRB->GetRigidBody()->applyForceToCenterOfMass(jump);
+    }
+   
+    LockColliderRotation();
 
+    //Camera
+    m_Camera->m_Pos = float3(rbPos.x, rbPos.y, rbPos.z) + _cameraSpring;
     m_Camera->m_ViewMatrix  = float4x4::Translation(-m_Camera->m_Pos) * CameraRotation;
     m_Camera->m_WorldMatrix = WorldRotation * float4x4::Translation(m_Camera->m_Pos);
 
-    //Print message
-    string message = "Move direction = " + std::to_string(PosDelta.x) + "," + std::to_string(PosDelta.y) + "," + std::to_string(PosDelta.z);
-    Diligent::Log::Instance().addInfo(message);
-    message = "current position = " + std::to_string(position.x) + " , " + std::to_string(position.y) + " , " + std::to_string(position.z);
+    //Print message  
+    /*string message = "Move direction = " + std::to_string(rbPos.x) + "," + std::to_string(rbPos.y) + "," + std::to_string(rbPos.z);
     Diligent::Log::Instance().addInfo(message);
     Diligent::Log::Instance().Draw();
-
+    */
 }
 
-void Player::UpdatePosition(InputController& Controller)
+//We need to lock the collider rotation
+void Player::LockColliderRotation()
 {
-    
+    CollisionBody* body = _playerCC->GetCollider()->getBody();
+    reactphysics3d::Transform bodyTrans = body->getTransform();
+    bodyTrans.setOrientation(reactphysics3d::Quaternion::identity());
+    body->setTransform(bodyTrans);
 }
-
-void Player::UpdatePRotation(InputController& Controller)
-{
-}
-
 
 }
 

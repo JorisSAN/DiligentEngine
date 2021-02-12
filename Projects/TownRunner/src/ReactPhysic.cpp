@@ -8,7 +8,7 @@ ReactPhysic::ReactPhysic()
 {
     // Create the world settings
     PhysicsWorld::WorldSettings settings;
-    settings.gravity = Vector3(0, -0.1, 0);
+    settings.gravity = Vector3(0, -9.81, 0);
 
     // Create the physics world with your settings
     _world = _physicsCommon.createPhysicsWorld(settings);

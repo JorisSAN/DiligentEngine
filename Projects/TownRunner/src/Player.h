@@ -18,7 +18,7 @@ public:
 
     Player(const SampleInitInfo& InitInfo, BackgroundMode backGround, RefCntAutoPtr<IRenderPass>& RenderPass, std::string name);
 
-    void Initialize(float3 spawnPosition, Quaternion spawnRotation, ReactPhysic* _reactPhysic, float3 cameraSpring, float capsuleRadius, float capsuleHeight, float cameraRotationSpeed, float cameraMoveSpeed);
+    void Initialize(float3 spawnPosition, Quaternion spawnRotation, ReactPhysic* _reactPhysic, float3 cameraSpring, float capsuleRadius, float capsuleHeight, float cameraRotationSpeed, float cameraMoveSpeed, float jumpHeight);
 
     void UpdatePlayer(double CurrTime, double ElapsedTime, InputController& Controller);
 
@@ -30,10 +30,17 @@ public:
     float3 GetCameraSpring() { return _cameraSpring; }
 
 private:
+    //Player components
+    RigidbodyComponent* _playerRB;
+    CollisionComponent* _playerCC;
 
-    void UpdatePosition(InputController& Controller);
-    void UpdatePRotation(InputController& Controller);
+    //Update
+    void LockColliderRotation();
 
+    //Jump
+    float _jumpHeight = 10.0f;
+    bool  _canJump    = true;
+    
     //Camera
     CameraPlayer* m_Camera;
     float3 _cameraSpring;
