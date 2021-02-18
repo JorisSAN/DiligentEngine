@@ -181,5 +181,23 @@ void ReactEventListener::FindBehaviour(Diligent::RigidbodyComponent* infoBody1, 
         }
         return;
     }
+    
+
+    //Case if a player hit the basic mesh
+    if ((actor1Type == Diligent::Actor::ActorType::BasicMesh && actor2Type == Diligent::Actor::ActorType::Player) || (actor1Type == Diligent::Actor::ActorType::Player && actor2Type == Diligent::Actor::ActorType::BasicMesh))
+    {
+        Diligent::Player* currPlayer;
+        if (actor1Type == Diligent::Actor::ActorType::Player)
+        {
+            currPlayer = static_cast<Diligent::Player*>(infoBody1->GetOwner());
+            currPlayer->AllowJump();
+        }
+        else
+        {
+            currPlayer = static_cast<Diligent::Player*>(infoBody2->GetOwner());
+            currPlayer->AllowJump();
+        }
+        return;
+    }
 }
 }

@@ -28,6 +28,7 @@ set(SOURCE
     src/TexturedCube.cpp
     src/Player.cpp
     src/CameraPlayer.cpp
+    src/Building.cpp
 ) 
 
 set(INCLUDE
@@ -58,6 +59,7 @@ set(INCLUDE
     src/TexturedCube.hpp
     src/Player.h
     src/CameraPlayer.h
+    src/Building.h
 )
 
 set(SHADERS
