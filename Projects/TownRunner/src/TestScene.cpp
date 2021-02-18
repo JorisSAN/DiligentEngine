@@ -69,21 +69,15 @@ void TestScene::Initialize(const SampleInitInfo& InitInfo)
 
     //Initialize react physic 3d
     _reactPhysic = new ReactPhysic();
+    //Initialize the event listener (trigger)
+    _reactPhysic->GetPhysicWorld()->setEventListener(&_listener);
 
     Init = InitInfo;
     CreateRenderPass();
 
-    /*
-    m_Camera.SetPos(float3(5.0f, 0.0f, 0.0f));
-    m_Camera.SetRotation(PI_F / 2.f, 0, 0);
-    m_Camera.SetRotationSpeed(0.005f);
-    m_Camera.SetMoveSpeed(5.f);
-    m_Camera.SetSpeedUpScales(5.f, 10.f);
-    */
-
     //Player
     _player = new Player(Init, m_BackgroundMode, m_pRenderPass, "Player");
-    _player->Initialize(float3(0, 15, 0), Quaternion(0, 0, 0, 1), _reactPhysic, float3(0, 0.5f, 0), 0.5f, 1.8f, 0.005f, 10.f, 150);
+    _player->Initialize(float3(0, 1, 0), Quaternion(0, 0, 0, 1), _reactPhysic, float3(0, 0.5f, 0), 0.5f, 1.8f, 0.005f, 10.f, 20000);
 
     m_pEngineFactory->CreateDefaultShaderSourceStreamFactory(nullptr, &pShaderSourceFactory);
 
@@ -331,11 +325,13 @@ void TestScene::CreateBasicMesh(const char* path, const SampleInitInfo& InitInfo
 void TestScene::ActorCreation()
 {
     //Create actor and their components
+    reactphysics3d::Transform nullTransform(reactphysics3d::Vector3(0, 0, 0), reactphysics3d::Quaternion::identity());
+
+    /*
     //Create Helmet
     Helmet* helmet1 = new Helmet(Init, m_BackgroundMode, m_pRenderPass, "helmet1");
     helmet1->setPosition(float3(0, 2, -5));
     reactphysics3d::Transform helmetTransform(reactphysics3d::Vector3(0,2,-5), reactphysics3d::Quaternion::identity());
-    reactphysics3d::Transform nullTransform(reactphysics3d::Vector3(0,0,0), reactphysics3d::Quaternion::identity());
     
     //rb
     RigidbodyComponent* helmetRigidbody = RigidbodyComponentCreation(helmet1, helmetTransform, BodyType::DYNAMIC);
@@ -343,23 +339,23 @@ void TestScene::ActorCreation()
     //collision
     SphereShape* sphereShape = _reactPhysic->GetPhysicCommon()->createSphereShape(0.5);
     CollisionComponentCreation(helmet1, helmetRigidbody, sphereShape, nullTransform);
-
+    */
+    
 
     //Create a plane
     Plane* plane1 = new Plane(Init, m_BackgroundMode, m_pRenderPass, "plane1");
-    helmet1->setPosition(float3(0, 10, 0));
-    reactphysics3d::Transform planeTransform(reactphysics3d::Vector3(0, 10, 0), reactphysics3d::Quaternion::identity());
+    reactphysics3d::Transform planeTransform(reactphysics3d::Vector3(0, -4, 0), reactphysics3d::Quaternion::identity());
 
     //rb
     RigidbodyComponent* rbPlane = RigidbodyComponentCreation(plane1, planeTransform, BodyType::STATIC);
 
     //collision
-    BoxShape* boxShape = _reactPhysic->GetPhysicCommon()->createBoxShape(reactphysics3d::Vector3(250, 4, 250));
+    BoxShape* boxShape = _reactPhysic->GetPhysicCommon()->createBoxShape(reactphysics3d::Vector3(250, 2, 250));
     CollisionComponentCreation(plane1, rbPlane, boxShape, nullTransform);
 
 
     //Add actor to list
-    actors.emplace_back(helmet1);
+    //actors.emplace_back(helmet1);
     actors.emplace_back(plane1);   
 }
 
@@ -377,6 +373,7 @@ void TestScene::CollisionComponentCreation(Actor* actor, RigidbodyComponent* rb,
     colisionComponent->SetCollisionShape(shape);
     colisionComponent->SetCollider(rb->GetRigidBody()->addCollider(shape, transform));
     actor->addComponent(colisionComponent);
+    colisionComponent->GetCollider()->getMaterial().setBounciness(0);
 }
 
 // Render a frame
@@ -571,7 +568,7 @@ void TestScene::SetLastActorTransform(float3 _coord, Quaternion _quat, float _sc
 }
 
 
-void                    TestScene::CreateTargetAndLight() {
+void TestScene::CreateTargetAndLight() {
 
     PointLight* light1 = new PointLight(Init, m_pRenderPass, pShaderSourceFactory);
     light1->setLocation(float3(0.3, -1.8, -12));

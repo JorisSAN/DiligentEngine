@@ -9,6 +9,7 @@ Helmet::Helmet(const SampleInitInfo& InitInfo, BackgroundMode backGroundP, RefCn
     GLTFObject::Initialize(InitInfo, RenderPass);
     setObjectPath("models/DamagedHelmet/DamagedHelmet.gltf");
     m_BackgroundMode = backGroundP;
+    _actorType = ActorType::Helmet;
 }
 
 
@@ -18,6 +19,7 @@ Helmet::Helmet(const SampleInitInfo& InitInfo, BackgroundMode backGround, RefCnt
     setObjectPath("models/DamagedHelmet/DamagedHelmet.gltf");
     m_BackgroundMode = backGround;
     _actorName       = name;
+    _actorType       = ActorType::Helmet;
 }
 
 

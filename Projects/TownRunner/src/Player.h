@@ -33,12 +33,17 @@ private:
     //Player components
     RigidbodyComponent* _playerRB;
     CollisionComponent* _playerCC;
+    CollisionComponent* _playerJumpCollider;
 
     //Update
+    void UpdatePositionRotation(double CurrTime, double ElapsedTime, InputController& Controller);
     void LockColliderRotation();
 
     //Jump
-    float _jumpHeight = 10.0f;
+    void Jump();
+
+    //Jump
+    float _jumpHeight = 20000;
     bool  _canJump    = true;
     
     //Camera

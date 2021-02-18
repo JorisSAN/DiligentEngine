@@ -41,6 +41,7 @@
 #include "PointLight.h"
 #include "Player.h"
 #include "Target.h"
+#include "ReactEventListener.h"
 
 namespace Diligent
 {
@@ -114,6 +115,9 @@ private:
     
     //React physic 3d
     ReactPhysic* _reactPhysic;
+
+    //ReactPhysics event listener (trigger)
+    ReactEventListener _listener;
 
 
     //Functions

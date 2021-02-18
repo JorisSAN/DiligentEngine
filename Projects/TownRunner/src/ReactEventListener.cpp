@@ -20,6 +20,8 @@ void ReactEventListener::onTrigger(const OverlapCallback::CallbackData& callback
 
         Diligent::Log::Instance().addInfo(message);
         Diligent::Log::Instance().Draw();
+
+        //Check what is the class of the overlapping body
     }
 }
 }

@@ -12,6 +12,7 @@ BasicMesh::BasicMesh(const SampleInitInfo& InitInfo, const char* path, Backgroun
     pathName = path;
     m_BackgroundMode = backGround;
     setObjectPath(path);
+    _actorType = ActorType::BasicMesh;
 }
 void BasicMesh::UpdateActor(double CurrTime, double ElapsedTime)
 {

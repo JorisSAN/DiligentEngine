@@ -8,6 +8,7 @@ Ray::Ray(const SampleInitInfo& InitInfo, BackgroundMode backGround, RefCntAutoPt
 {
     setObjectPath("models/Ray/Ray.gltf");
     m_BackgroundMode = backGround;
+    _actorType       = ActorType::Ray;
 }
 
 Ray::Ray(const SampleInitInfo& InitInfo, BackgroundMode backGroundP, RefCntAutoPtr<IRenderPass>& RenderPass, std::string name) :
@@ -16,6 +17,7 @@ Ray::Ray(const SampleInitInfo& InitInfo, BackgroundMode backGroundP, RefCntAutoP
     setObjectPath("models/Ray/Ray.gltf");
     m_BackgroundMode = backGroundP;
     _actorName       = name;
+    _actorType       = ActorType::Ray;
 }
 
 void Ray::UpdateActor(double CurrTime, double ElapsedTime)

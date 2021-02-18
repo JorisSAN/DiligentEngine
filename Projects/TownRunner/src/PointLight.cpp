@@ -53,13 +53,14 @@ struct ShaderConstants
 
 PointLight::PointLight()
 {
-
+    _actorType = ActorType::PointLight;
 }
 
 PointLight::PointLight(const SampleInitInfo& InitInfo, RefCntAutoPtr<IRenderPass>& RenderPass, IShaderSourceInputStreamFactory* pShaderSourceFactory) :
     m_pRenderPass(RenderPass)
 {
     Initialize(InitInfo, pShaderSourceFactory);
+    _actorType = ActorType::PointLight;
 }
 
 void PointLight::GetEngineInitializationAttribs(RENDER_DEVICE_TYPE DeviceType,

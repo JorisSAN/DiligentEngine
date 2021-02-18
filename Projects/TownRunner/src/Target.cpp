@@ -9,6 +9,7 @@ Target::Target(const SampleInitInfo& InitInfo, BackgroundMode backGroundP, RefCn
     GLTFObject::Initialize(InitInfo, RenderPass);
     setObjectPath("models/Immeubles/v2test/cible.gltf");
     m_BackgroundMode = backGroundP;
+    _actorType       = ActorType::Target;
 }
 
 
@@ -18,6 +19,7 @@ Target::Target(const SampleInitInfo& InitInfo, BackgroundMode backGround, RefCnt
     setObjectPath("models/Immeubles/v2test/cible.gltf");
     m_BackgroundMode = backGround;
     _actorName       = name;
+    _actorType       = ActorType::Target;
 }
 
 

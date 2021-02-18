@@ -8,6 +8,7 @@ Sphere::Sphere(const SampleInitInfo& InitInfo, BackgroundMode backGroundP, RefCn
     GLTFObject::Initialize(InitInfo, RenderPass);
     setObjectPath("models/MetalRoughSpheres/MetalRoughSpheres.gltf");
     m_BackgroundMode = backGroundP;
+    _actorType       = ActorType::Sphere;
 }
 
 void Sphere::UpdateActor(double CurrTime, double ElapsedTime)

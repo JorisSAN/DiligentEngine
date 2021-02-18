@@ -10,6 +10,7 @@ RigidbodyComponent::RigidbodyComponent(Diligent::Actor* ownerP, Transform transf
 {
     _rigidBody = _world->createRigidBody(transform);
     _rigidBody->setUserData(this);
+    
 }
 
 RigidbodyComponent::RigidbodyComponent(Diligent::Actor* ownerP, Transform transform, PhysicsWorld* _world, int updateOrder) :

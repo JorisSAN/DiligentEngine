@@ -52,6 +52,21 @@ public:
     };
     
 
+    enum class ActorType
+    {
+        BaseActor,
+        GLTFObject,
+        BasicMesh,
+        Helmet,
+        Sphere,
+        AnimPeople,
+        Plane,
+        Ray,
+        Target,
+        AmbientLight,
+        PointLight,
+        Player
+    };
 
 
 
@@ -94,6 +109,8 @@ public:
     std::string GetActorName() { return _actorName; }
     void        SetActorName(std::string newName) { _actorName = newName; }
 
+    ActorType GetActorType() { return _actorType; }
+
 protected:
     TestScene& scene;
     ActorState state = ActorState::Active;
@@ -114,12 +131,15 @@ protected:
     float3     position = float3(0.0f, 0.0f, 0.0f);
 
     std::string _actorName;
+    ActorType   _actorType = ActorType::BaseActor;
+
 
 private:
     virtual void CreatePSO() {}
     virtual void CreateVertexBuffer() {}
 
     std::vector<Component*> components;
+
 };
 
 

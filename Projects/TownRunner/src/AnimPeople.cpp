@@ -8,6 +8,7 @@ AnimPeople::AnimPeople(const SampleInitInfo& InitInfo, BackgroundMode backGround
     GLTFObject::Initialize(InitInfo, RenderPass);
     setObjectPath("models/CesiumMan/CesiumMan.gltf");
     m_BackgroundMode = backGroundP;
+    _actorType       = ActorType::AnimPeople;
 }
 
 void AnimPeople::UpdateActor(double CurrTime, double ElapsedTime)

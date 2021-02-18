@@ -61,12 +61,13 @@ struct EnvMapRenderAttribs
 
 GLTFObject::GLTFObject()
 {
-
+    _actorType = ActorType::GLTFObject;
 }
 
 GLTFObject::GLTFObject(const SampleInitInfo& InitInfo, RefCntAutoPtr<IRenderPass>& RenderPass)
 {
     Initialize(InitInfo, RenderPass);
+    _actorType = ActorType::GLTFObject;
 }
 
 void GLTFObject::LoadModel(const char* Path)

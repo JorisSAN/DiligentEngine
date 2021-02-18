@@ -8,6 +8,7 @@ Plane::Plane(const SampleInitInfo& InitInfo, BackgroundMode backGround, RefCntAu
 {
     setObjectPath("models/DamagedHelmet/DamagedHelmet.gltf");
     m_BackgroundMode = backGround;
+    _actorType       = ActorType::Plane;
 }
 
 Plane::Plane(const SampleInitInfo& InitInfo, BackgroundMode backGroundP, RefCntAutoPtr<IRenderPass>& RenderPass, std::string name) :
@@ -16,6 +17,7 @@ Plane::Plane(const SampleInitInfo& InitInfo, BackgroundMode backGroundP, RefCntA
     setObjectPath("models/Plane/Plane.gltf");
     m_BackgroundMode = backGroundP;
     _actorName       = name;
+    _actorType       = ActorType::Plane;
 }
 
 void Plane::UpdateActor(double CurrTime, double ElapsedTime)

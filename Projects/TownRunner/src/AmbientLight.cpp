@@ -54,13 +54,14 @@ struct ShaderConstants
 
 AmbientLight::AmbientLight()
 {
-
+    _actorType = ActorType::AmbientLight;
 }
 
 AmbientLight::AmbientLight(const SampleInitInfo& InitInfo, RefCntAutoPtr<IRenderPass>& RenderPass, IShaderSourceInputStreamFactory* pShaderSourceFactory) :
     m_pRenderPass(RenderPass)
 {
     Initialize(InitInfo, pShaderSourceFactory);
+    _actorType = ActorType::AmbientLight;
 }
 
 void AmbientLight::CreateAmbientLightPSO(IShaderSourceInputStreamFactory* pShaderSourceFactory)
