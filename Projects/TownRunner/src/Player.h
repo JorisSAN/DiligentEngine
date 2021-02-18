@@ -29,6 +29,8 @@ public:
     void SetCameraSpring(float3 s) { _cameraSpring = s; }
     float3 GetCameraSpring() { return _cameraSpring; }
 
+    void AllowJump();
+
 private:
     //Player components
     RigidbodyComponent* _playerRB;
@@ -43,7 +45,7 @@ private:
     void Jump();
 
     //Jump
-    float _jumpHeight = 20000;
+    float _jumpHeight = 40000;
     bool  _canJump    = true;
     
     //Camera

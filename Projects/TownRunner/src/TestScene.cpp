@@ -77,7 +77,7 @@ void TestScene::Initialize(const SampleInitInfo& InitInfo)
 
     //Player
     _player = new Player(Init, m_BackgroundMode, m_pRenderPass, "Player");
-    _player->Initialize(float3(0, 1, 0), Quaternion(0, 0, 0, 1), _reactPhysic, float3(0, 0.5f, 0), 0.5f, 1.8f, 0.005f, 10.f, 20000);
+    _player->Initialize(float3(0, 1, 0), Quaternion(0, 0, 0, 1), _reactPhysic, float3(0, 0.5f, 0), 0.5f, 1.8f, 0.005f, 10.f, 40000);
 
     m_pEngineFactory->CreateDefaultShaderSourceStreamFactory(nullptr, &pShaderSourceFactory);
 
