@@ -65,7 +65,8 @@ public:
         Target,
         AmbientLight,
         PointLight,
-        Player
+        Player,
+        Building
     };
 
 

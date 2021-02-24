@@ -21,12 +21,12 @@ void ReactEventListener::onTrigger(const OverlapCallback::CallbackData& callback
         Diligent::Actor::ActorType actor2Type = Diligent::Actor::ActorType::BaseActor;
         FindActorType(infoBody1, infoBody2, &actor1String, &actor2String, &actor1Type, &actor2Type);
         
-        /*
+
         string message = "Actor1 name = " + actor1String +
             " - Actor2 name = " + actor2String;
         Diligent::Log::Instance().addInfo(message);
         Diligent::Log::Instance().Draw();
-        */
+
 
         //Check what is the class of the overlapping body
         FindBehaviour(infoBody1, infoBody2, actor1Type, actor2Type);
@@ -93,6 +93,11 @@ void ReactEventListener::FindActorType(Diligent::RigidbodyComponent* infoBody1, 
             *actor1Type   = Diligent::Actor::ActorType::Target;
             break;
 
+        case Diligent::Actor::ActorType::Building:
+            *actor1String = "Building";
+            *actor1Type   = Diligent::Actor::ActorType::Building;
+            break;
+
         default:
             *actor1String = "BaseActor";
             break;
@@ -156,6 +161,11 @@ void ReactEventListener::FindActorType(Diligent::RigidbodyComponent* infoBody1, 
             *actor2Type   = Diligent::Actor::ActorType::Target;
             break;
 
+        case Diligent::Actor::ActorType::Building:
+            *actor2String = "Building";
+            *actor2Type   = Diligent::Actor::ActorType::Building;
+            break;
+
         default:
             *actor2String = "BaseActor";
             break;
@@ -183,8 +193,8 @@ void ReactEventListener::FindBehaviour(Diligent::RigidbodyComponent* infoBody1, 
     }
     
 
-    //Case if a player hit the basic mesh
-    if ((actor1Type == Diligent::Actor::ActorType::BasicMesh && actor2Type == Diligent::Actor::ActorType::Player) || (actor1Type == Diligent::Actor::ActorType::Player && actor2Type == Diligent::Actor::ActorType::BasicMesh))
+    //Case if a player hit a building
+    if ((actor1Type == Diligent::Actor::ActorType::Building && actor2Type == Diligent::Actor::ActorType::Player) || (actor1Type == Diligent::Actor::ActorType::Player && actor2Type == Diligent::Actor::ActorType::Building))
     {
         Diligent::Player* currPlayer;
         if (actor1Type == Diligent::Actor::ActorType::Player)

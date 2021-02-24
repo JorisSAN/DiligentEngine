@@ -302,7 +302,8 @@ IFramebuffer* TestScene::GetCurrentFramebuffer()
 
 void TestScene::CreateBasicMesh(const char* path, const SampleInitInfo& InitInfo,float3 coord)
 {
-    BasicMesh* mesh = new BasicMesh(Init, path, m_BackgroundMode, m_pRenderPass);
+    //BasicMesh* mesh = new BasicMesh(Init, path, m_BackgroundMode, m_pRenderPass);
+    Building* building = new Building(Init, m_BackgroundMode, m_pRenderPass, "Building", path);
     float3     vec(coord);
     //need to correct with correct collision probably
 
@@ -310,16 +311,16 @@ void TestScene::CreateBasicMesh(const char* path, const SampleInitInfo& InitInfo
     reactphysics3d::Transform nullTransform(reactphysics3d::Vector3(0, 0, 0), reactphysics3d::Quaternion::identity());
 
     //rigid body
-    RigidbodyComponent* rbCube = RigidbodyComponentCreation(mesh, cubeTransform, BodyType::STATIC);
-    rbCube->GetRigidBody()->setUserData(rbCube);
-    reactphysics3d::Vector3 scalebox =GetScaleBox(path);
+    RigidbodyComponent* rbCube = RigidbodyComponentCreation(building, cubeTransform, BodyType::STATIC);
+    //rbCube->GetRigidBody()->setUserData(rbCube);
+    reactphysics3d::Vector3 scalebox = GetScaleBox(path);
    
     // collision
     BoxShape* boxShape = _reactPhysic->GetPhysicCommon()->createBoxShape(scalebox);
     
-    CollisionComponentCreation(mesh, rbCube, boxShape, nullTransform);
+    CollisionComponentCreation(building, rbCube, boxShape, nullTransform);
 
-    actors.emplace_back(mesh);
+    actors.emplace_back(building);
 }
      
 void TestScene::ActorCreation()
@@ -342,6 +343,7 @@ void TestScene::ActorCreation()
     */
     
 
+    /*
     //Create a plane
     Plane* plane1 = new Plane(Init, m_BackgroundMode, m_pRenderPass, "plane1");
     reactphysics3d::Transform planeTransform(reactphysics3d::Vector3(0, -4, 0), reactphysics3d::Quaternion::identity());
@@ -353,10 +355,12 @@ void TestScene::ActorCreation()
     BoxShape* boxShape = _reactPhysic->GetPhysicCommon()->createBoxShape(reactphysics3d::Vector3(250, 2, 250));
     CollisionComponentCreation(plane1, rbPlane, boxShape, nullTransform);
 
+    */
+    
 
     //Add actor to list
     //actors.emplace_back(helmet1);
-    actors.emplace_back(plane1);   
+    //actors.emplace_back(plane1);   
 }
 
 RigidbodyComponent* TestScene::RigidbodyComponentCreation(Actor* actor, reactphysics3d::Transform transform, BodyType type)

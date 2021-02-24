@@ -42,6 +42,7 @@
 #include "Player.h"
 #include "Target.h"
 #include "ReactEventListener.h"
+#include "Building.h"
 
 namespace Diligent
 {

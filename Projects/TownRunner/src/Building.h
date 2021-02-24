@@ -10,12 +10,12 @@ namespace Diligent
 class Building : public GLTFObject
 {
 public:
-    Building(const SampleInitInfo& InitInfo, BackgroundMode backGround, RefCntAutoPtr<IRenderPass>& RenderPass, std::string name);
+    Building(const SampleInitInfo& InitInfo, BackgroundMode backGround, RefCntAutoPtr<IRenderPass>& RenderPass, std::string name, const char* path);
 
     void UpdatePlayer(double CurrTime, double ElapsedTime, InputController& Controller);
 
 private:
-
+    std::string pathName;
 
 
 };
