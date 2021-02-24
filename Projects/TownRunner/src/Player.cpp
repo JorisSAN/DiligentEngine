@@ -50,7 +50,8 @@ void Player::Initialize(float3 spawnPosition, Quaternion spawnRotation, ReactPhy
 
 
     //Player foot collider for jump
-    reactphysics3d::Vector3 boxShapeV3 = reactphysics3d::Vector3(capsuleRadius, 0.05f, capsuleRadius);
+    /*
+    reactphysics3d::Vector3 boxShapeV3 = reactphysics3d::Vector3(capsuleRadius, 0.1f, capsuleRadius);
     BoxShape* boxShape = reactPhysic->GetPhysicCommon()->createBoxShape(boxShapeV3);
     CollisionComponent* boxCC = new CollisionComponent(GetActor(), boxShape);
     reactphysics3d::Vector3 boxPos = reactphysics3d::Vector3(0, -capsuleHeight / 2, 0);
@@ -59,6 +60,13 @@ void Player::Initialize(float3 spawnPosition, Quaternion spawnRotation, ReactPhy
     boxCC->GetCollider()->setIsTrigger(true);
     _playerJumpCollider = boxCC;
     addComponent(boxCC);
+    */
+    CollisionComponent*       jumpCollider      = new CollisionComponent(GetActor(), capsuleShape);
+    jumpCollider->SetCollider(rb->GetRigidBody()->addCollider(capsuleShape, ccTransform));
+    jumpCollider->GetCollider()->getMaterial().setBounciness(0);
+    jumpCollider->GetCollider()->setIsTrigger(true);
+    _playerJumpCollider = colComp;
+    addComponent(colComp);
 
     //Jump
     _jumpHeight = jumpHeight;
@@ -169,14 +177,16 @@ void Player::UpdatePositionRotation(double CurrTime, double ElapsedTime, InputCo
     //Update coords
 
     //----------------------------
-    //Player
+    //Player - update rigidbody and ColComp
     reactphysics3d::Transform rbTrans = _playerRB->GetRigidBody()->getTransform();
     reactphysics3d::Vector3   rbPos   = rbTrans.getPosition();
     rbPos                             = reactphysics3d::Vector3(rbPos.x + PosDeltaWorld.x, rbPos.y, rbPos.z + PosDeltaWorld.z);
     rbTrans.setPosition(rbPos);
     _playerRB->GetRigidBody()->setTransform(rbTrans);
-    reactphysics3d::Vector3 jumpColiderPos = reactphysics3d::Vector3(rbPos.x, rbPos.y - 0.9f, rbPos.z);
-    _playerJumpCollider->GetCollider()->setLocalToBodyTransform(reactphysics3d::Transform(jumpColiderPos, rbTrans.getOrientation()));
+    reactphysics3d::Transform nullTransform(reactphysics3d::Vector3(0, 0, 0), reactphysics3d::Quaternion::identity());
+    _playerJumpCollider->GetCollider()->setLocalToBodyTransform(nullTransform);
+    _playerCC->GetCollider()->setLocalToBodyTransform(nullTransform);
+
 
     //Reset linear (this is to prevent drift)
     reactphysics3d::Vector3 rbLinVel = _playerRB->GetRigidBody()->getLinearVelocity();
@@ -246,9 +256,9 @@ void Player::Jump()
     _playerRB->GetRigidBody()->applyForceToCenterOfMass(jump);
 
     //Print
-    string message = "JUMP";
-    Diligent::Log::Instance().addInfo(message);
-    Diligent::Log::Instance().Draw();
+    //string message = "JUMP";
+    //Diligent::Log::Instance().addInfo(message);
+    //Diligent::Log::Instance().Draw();
 }
 
 }

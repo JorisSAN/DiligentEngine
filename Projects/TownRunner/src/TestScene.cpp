@@ -305,21 +305,17 @@ void TestScene::CreateBasicMesh(const char* path, const SampleInitInfo& InitInfo
     //BasicMesh* mesh = new BasicMesh(Init, path, m_BackgroundMode, m_pRenderPass);
     Building* building = new Building(Init, m_BackgroundMode, m_pRenderPass, "Building", path);
     float3     vec(coord);
-    //need to correct with correct collision probably
 
     reactphysics3d::Transform cubeTransform(reactphysics3d::Vector3(vec.x, vec.y, vec.z), reactphysics3d::Quaternion::identity());
     reactphysics3d::Transform nullTransform(reactphysics3d::Vector3(0, 0, 0), reactphysics3d::Quaternion::identity());
 
     //rigid body
     RigidbodyComponent* rbCube = RigidbodyComponentCreation(building, cubeTransform, BodyType::STATIC);
-    //rbCube->GetRigidBody()->setUserData(rbCube);
     reactphysics3d::Vector3 scalebox = GetScaleBox(path);
    
-    // collision
+    //Collision
     BoxShape* boxShape = _reactPhysic->GetPhysicCommon()->createBoxShape(scalebox);
-    
     CollisionComponentCreation(building, rbCube, boxShape, nullTransform);
-
     actors.emplace_back(building);
 }
      
@@ -829,7 +825,7 @@ reactphysics3d::Vector3 TestScene::GetScaleBox(const char* path)
     if (!strcmp(path,"models\\Immeubles\\v2test\\Immeuble2_V3.gltf"))
     {
 
-        return reactphysics3d::Vector3(3.753, 2.773, 6);
+        return reactphysics3d::Vector3(3.753, 5.8, 2.773);
     }
 
     if (!strcmp(path, "models\\Immeubles\\v2test\\Immeuble3_X2_V2.gltf"))
